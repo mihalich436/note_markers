@@ -24,7 +24,7 @@ public class User {
 
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "owner_id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore
     private List<Project> projects = new ArrayList<>();
 

@@ -14,8 +14,8 @@ public class Map {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "project_id")
-    private Long projectId;
+//    @Column(name = "project_id")
+//    private Long projectId;
 
     @Column(nullable = false)
     private String title;
@@ -56,13 +56,13 @@ public class Map {
         this.id = id;
     }
 
-    public Long getProjectId() {
-        return projectId;
-    }
-
-    public void setProjectId(Long projectId) {
-        this.projectId = projectId;
-    }
+//    public Long getProjectId() {
+//        return projectId;
+//    }
+//
+//    public void setProjectId(Long projectId) {
+//        this.projectId = projectId;
+//    }
 
     public String getTitle() {
         return title;

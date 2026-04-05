@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
-//@CrossOrigin(origins = "http://localhost:3000") // Укажите порт вашего фронта
+@CrossOrigin() //> Указать адрес и порт фронта
 public class AuthController {
 
     @Autowired

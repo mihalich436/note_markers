@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/projects")
+@CrossOrigin() //> Указать адрес и порт фронта
 public class ProjectController {
 
     @GetMapping
