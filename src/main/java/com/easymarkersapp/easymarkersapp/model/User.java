@@ -24,9 +24,9 @@ public class User {
 
     private LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Project> projects = new ArrayList<>();
+//    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JsonIgnore
+//    private List<Project> projects = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

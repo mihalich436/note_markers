@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin() //> Указать адрес и порт фронта
@@ -38,7 +40,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        var userOpt = userService.findByUsername(request.getUsername());
+        Optional<User> userOpt = userService.findByUsername(request.getUsername());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();

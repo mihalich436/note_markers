@@ -25,17 +25,17 @@ public class Project {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-//    @Column(name = "owner_id")
-//    private Long ownerId;
+    @Column(name = "owner_id")
+    private Long ownerId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "owner_id", nullable = false)
-    @JsonIgnore
-    private User owner;
-
-    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<Map> maps = new ArrayList<>();
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "owner_id", nullable = false)
+//    @JsonIgnore
+//    private User owner;
+//
+//    @OneToMany(mappedBy = "id", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    @JsonIgnore
+//    private List<Map> maps = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -73,11 +73,11 @@ public class Project {
 //    }
 
 
-//    public Long getOwnerId() {
-//        return ownerId;
-//    }
-//
-//    public void setOwnerId(Long ownerId) {
-//        this.ownerId = ownerId;
-//    }
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
+    }
 }
