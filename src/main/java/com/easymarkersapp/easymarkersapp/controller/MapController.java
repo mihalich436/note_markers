@@ -1,9 +1,13 @@
 package com.easymarkersapp.easymarkersapp.controller;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import com.easymarkersapp.easymarkersapp.dto.MapCreateRequest;
+import com.easymarkersapp.easymarkersapp.model.Map;
+import com.easymarkersapp.easymarkersapp.model.User;
+import com.easymarkersapp.easymarkersapp.service.MapService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/maps")
@@ -130,6 +134,9 @@ public class MapController {
                 "minZoomForLabels": 1
               }
             }""";
+
+//    @Autowired
+//    private MapService mapService;
 
     @GetMapping("test")
     public String getTestMap() {

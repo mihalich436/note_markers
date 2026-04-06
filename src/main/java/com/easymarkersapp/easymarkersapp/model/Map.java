@@ -14,7 +14,7 @@ public class Map {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "project_id")
+//    @Column(name = "project_id")
     private Long projectId;
 
     @Column(nullable = false)
@@ -32,10 +32,11 @@ public class Map {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "project_id", nullable = false)
-//    @JsonIgnore
-//    private Project project;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "projectId", nullable = false, insertable = false, updatable = false)
+//    @Access(AccessType.PROPERTY)
+    @JsonIgnore
+    private Project project;
 
     @PrePersist
     protected void onCreate() {
@@ -102,5 +103,26 @@ public class Map {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
+    }
+
+    @Override
+    public String toString() {
+        return "Map{" +
+                "id=" + id +
+                ", projectId=" + projectId +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
     }
 }
