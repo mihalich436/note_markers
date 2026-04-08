@@ -26,12 +26,15 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
+            if (!checkNewPassword(request.getPassword())) {
+                return ResponseEntity.badRequest().body(new AuthResponse(null, null, "Weak password"));
+            }
             User user = userService.register(
                     request.getUsername(),
                     request.getEmail(),
                     request.getPassword()
             );
-            String token = jwtService.generateToken(user.getUsername());
+            String token = jwtService.generateToken(user.getEmail());
             return ResponseEntity.ok(new AuthResponse(token, user.getUsername(), "Registration successful"));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new AuthResponse(null, null, e.getMessage()));
@@ -40,16 +43,20 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        Optional<User> userOpt = userService.findByUsername(request.getUsername());
+        Optional<User> userOpt = userService.findByEmail(request.getEmail());
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             if (userService.checkPassword(request.getPassword(), user.getPasswordHash())) {
-                String token = jwtService.generateToken(user.getUsername());
+                String token = jwtService.generateToken(user.getEmail());
                 return ResponseEntity.ok(new AuthResponse(token, user.getUsername(), "Login successful"));
             }
         }
 
         return ResponseEntity.status(401).body(new AuthResponse(null, null, "Invalid credentials"));
+    }
+
+    private boolean checkNewPassword(String rawPassword) {
+        return rawPassword.length() > 0; //> temp
     }
 }

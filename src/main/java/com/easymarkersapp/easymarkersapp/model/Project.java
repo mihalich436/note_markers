@@ -5,7 +5,9 @@ import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "projects")
@@ -26,17 +28,21 @@ public class Project {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @Column(name = "owner_id")
+//    @Column(name = "owner_id", nullable = false)
     private Long ownerId;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "owner_id", nullable = false)
-//    @JsonIgnore
-//    private User owner;
-//
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ownerId", insertable = false, updatable = false)
+    @JsonIgnore
+    private User owner;
+
     @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Map> maps = new ArrayList<>();
+
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ProjectAccess> accesses = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
@@ -49,7 +55,6 @@ public class Project {
         updatedAt = LocalDateTime.now();
     }
 
-    // Геттеры и сеттеры
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -65,13 +70,13 @@ public class Project {
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
 
-//    public User getOwner() {
-//        return owner;
-//    }
-//
-//    public void setOwner(User owner) {
-//        this.owner = owner;
-//    }
+    public User getOwner() {
+        return owner;
+    }
+
+    public void setOwner(User owner) {
+        this.owner = owner;
+    }
 
 
     public Long getOwnerId() {
@@ -89,6 +94,9 @@ public class Project {
     public void setMaps(List<Map> maps) {
         this.maps = maps;
     }
+
+    public Set<ProjectAccess> getAccesses() { return accesses; }
+    public void setAccesses(Set<ProjectAccess> accesses) { this.accesses = accesses; }
 
     @Override
     public String toString() {
