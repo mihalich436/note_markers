@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -34,8 +33,11 @@ public class ProjectController {
     public ResponseEntity<?> getProjects() {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 //        List<Project> projects = projectService.findByOwnerId(currentUser.getId());
-        List<ProjectAccess> projectAccesses = accessService.findByUser(currentUser);
-        List<Project> projects = projectAccesses.stream().map(ProjectAccess::getProject).collect(Collectors.toList());
+
+//        List<ProjectAccess> projectAccesses = accessService.findByUser(currentUser);
+//        List<Project> projects = projectAccesses.stream().map(ProjectAccess::getProject).collect(Collectors.toList());
+
+        List<Project> projects = projectService.findByUser(currentUser);
         return ResponseEntity.ok(projects);
     }
 
@@ -43,13 +45,14 @@ public class ProjectController {
     public ResponseEntity<?> getProject(@PathVariable Long id) {
 //        Optional<Project> projectOptional = projectService.findById(id);
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Optional<ProjectAccess> projectOptional = accessService.findByProjectIdAndUser(id, currentUser);
+//        Optional<ProjectAccess> projectOptional = accessService.findByProjectIdAndUser(id, currentUser);
+        Project project = projectService.findByProjectIdAndUser(id, currentUser);
 
-        if (projectOptional.isPresent()) {
-            Project project = projectOptional.get().getProject();
+        if (project != null) {
+//            Project project = projectOptional.get().getProject();
             System.out.println(project);
 //            if (currentUser.projectBelongUser(project)){
-                return ResponseEntity.ok(project);
+            return ResponseEntity.ok(project);
 //            }
 //            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
         }

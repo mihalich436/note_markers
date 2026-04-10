@@ -11,4 +11,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     List<Project> findByOwnerId(Long id);
     @EntityGraph(attributePaths = {"maps"})
     Optional<Project> findById(Long id);
+
+    @EntityGraph(attributePaths = {"maps"})
+    Optional<Project> findByIdAndOwnerId(Long id, Long ownerId);
 }
