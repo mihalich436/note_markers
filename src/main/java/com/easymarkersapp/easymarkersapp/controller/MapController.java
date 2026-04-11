@@ -1,9 +1,13 @@
 package com.easymarkersapp.easymarkersapp.controller;
 
+import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
 import com.easymarkersapp.easymarkersapp.dto.MapCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.MarkerCreateRequest;
 import com.easymarkersapp.easymarkersapp.model.Map;
+import com.easymarkersapp.easymarkersapp.model.Marker;
 import com.easymarkersapp.easymarkersapp.model.User;
 import com.easymarkersapp.easymarkersapp.service.MapService;
+import com.easymarkersapp.easymarkersapp.service.MarkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,10 +20,10 @@ public class MapController {
     private static final String testMap = """
             {
               "version": "1.0",
-              "name": "Testpport",
+              "name": "Testport",
               "description": "This is a test map of a test town named Testport.",
               "timestamp": "2026-04-01T19:22:48.729Z",
-              "imageUrl": "https://s12nrg.storage.yandex.net/rdisk/4932cbd5f704d97192445eedda254a7163f2ca44dbe2104dbffd4604ead48b12/69d31752/U5lSaNESKFUE9PldC7iudBZokqE6KxGYrQu4khA3VEHSsHFYCrCfksWcg4uE6FpttDoHCaZKuiMcUi8HYjcoWw==?uid=227704591&filename=testport.png&disposition=inline&hash=&limit=0&content_type=image%2Fpng&owner_uid=227704591&fsize=2877405&hid=9eaaaf2337aa9efb3999b505310686b9&media_type=image&tknv=v3&etag=d1212fa3573257d76a8c1545376ad442&ts=64ec13e96f880&s=3ac882525b94da275f915ef2db20bf0877345d3de784f9e7fb37127ff3696d87&pb=U2FsdGVkX1_vb-xOWLioQkBsR82H6sn6zzT0dJJVeOQZUcJkVrgBBfSA9pSIUP2CFwJmMF8Za5tVB0KQOmoUAw16I1Uc7ul6qeMkkl4m20Q",
+              "imageUrl": "https://psv4.userapi.com/s/v1/d2/Mgr97H-JIl_n8n0KyC5zLl9brQSlVPllbxVGD61mbT_Tl4pcvlUnEQp_5DwI9NQFnGtqy1COd7wH0RGNxLfYK8FZ-QWVijRcv37znoJrYnCylWY1fRsf0fB3NLIN7r11hUy8ybi7SpFX/testport.png",
               "markers": [
                 {
                   "id": 1774986744132,
@@ -135,11 +139,36 @@ public class MapController {
               }
             }""";
 
-//    @Autowired
-//    private MapService mapService;
+    @Autowired
+    private MapService mapService;
+    @Autowired
+    private MarkerService markerService;
 
     @GetMapping("test")
     public String getTestMap() {
         return testMap;
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getMap(@PathVariable Long id) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map map = mapService.findByIdAndCheckAccess(id, currentUser);
+        if (map != null) {
+            return ResponseEntity.ok(map);
+        }
+
+        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
+    }
+
+    @PostMapping("/{id}/markers")
+    public ResponseEntity<?> createMarker(@PathVariable Long id, @RequestBody MarkerCreateRequest request) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        //> check user's role
+        if (mapService.existsByIdAndUser(id, currentUser)) {
+            Marker markerToAdd = new Marker(request);
+            markerToAdd.setMapId(id);
+            Marker marker = markerService.save(markerToAdd);
+            return ResponseEntity.ok(marker);
+        }
+        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
     }
 }

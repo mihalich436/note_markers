@@ -1,6 +1,8 @@
 package com.easymarkersapp.easymarkersapp.model;
 
+import com.easymarkersapp.easymarkersapp.dto.MarkerCreateRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,8 +16,8 @@ public class Marker {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer x;
-    private Integer y;
+    private Double x;
+    private Double y;
     private String title;
     private String note;
 
@@ -31,11 +33,32 @@ public class Marker {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    private Long mapId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "mapId", nullable = false, insertable = false, updatable = false)
+    @JsonIgnore
+    private Map map;
+
     // Связь с проектом (много заметок -> один проект)
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "marker_id")
-    @JsonIgnore
+    @JoinColumn(name = "markerId")
+//    @JsonManagedReference
     private List<Message> messages = new ArrayList<>();
+
+    public Marker(MarkerCreateRequest createRequest) {
+        this.title = createRequest.getTitle();
+        this.note = createRequest.getNote();
+        this.description = createRequest.getDescription();
+        this.x = createRequest.getX();
+        this.y = createRequest.getY();
+        this.color = createRequest.getColor();
+        this.shape = createRequest.getShape();
+        this.size = createRequest.getSize();
+    }
+
+    public Marker() {
+    }
 
     @PrePersist
     protected void onCreate() {
@@ -56,19 +79,19 @@ public class Marker {
         this.id = id;
     }
 
-    public Integer getX() {
+    public Double getX() {
         return x;
     }
 
-    public void setX(Integer x) {
+    public void setX(Double x) {
         this.x = x;
     }
 
-    public Integer getY() {
+    public Double getY() {
         return y;
     }
 
-    public void setY(Integer y) {
+    public void setY(Double y) {
         this.y = y;
     }
 
@@ -142,5 +165,32 @@ public class Marker {
 
     public void setMessages(List<Message> messages) {
         this.messages = messages;
+    }
+
+    public Long getMapId() {
+        return mapId;
+    }
+
+    public void setMapId(Long mapId) {
+        this.mapId = mapId;
+    }
+
+    public Map getMap() {
+        return map;
+    }
+
+    public void setMap(Map map) {
+        this.map = map;
+    }
+
+    public void update(MarkerCreateRequest createRequest) {
+        this.title = createRequest.getTitle();
+        this.note = createRequest.getNote();
+        this.description = createRequest.getDescription();
+        this.x = createRequest.getX();
+        this.y = createRequest.getY();
+        this.color = createRequest.getColor();
+        this.shape = createRequest.getShape();
+        this.size = createRequest.getSize();
     }
 }

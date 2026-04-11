@@ -1,6 +1,7 @@
 package com.easymarkersapp.easymarkersapp.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,10 @@ public class Map {
 //    @Access(AccessType.PROPERTY)
     @JsonIgnore
     private Project project;
+
+    @OneToMany(mappedBy = "mapId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Marker> markers = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -111,6 +116,14 @@ public class Map {
 
     public void setProject(Project project) {
         this.project = project;
+    }
+
+    public List<Marker> getMarkers() {
+        return markers;
+    }
+
+    public void setMarkers(List<Marker> markers) {
+        this.markers = markers;
     }
 
     @Override
