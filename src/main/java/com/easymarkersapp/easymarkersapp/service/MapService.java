@@ -1,9 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
-import com.easymarkersapp.easymarkersapp.model.Map;
-import com.easymarkersapp.easymarkersapp.model.Project;
-import com.easymarkersapp.easymarkersapp.model.ProjectAccess;
-import com.easymarkersapp.easymarkersapp.model.User;
+import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.MapRepository;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
 import jakarta.transaction.Transactional;
@@ -32,15 +29,20 @@ public class MapService {
         if (mapOptional.isPresent()) {
             Map map = mapOptional.get();
             Project project = map.getProject();
-            if (project.getOwnerId().equals(user.getId())) {
-                System.out.println("Found by owner");
-                map.getMarkers();
-                return map;
-            }
+//            if (project.getOwnerId().equals(user.getId())) {
+//                System.out.println("Found by owner");
+//                map.getMarkers();
+//                return map;
+//            }
             Optional<ProjectAccess> projectAccessOptional = accessRepository.findByProjectAndUser(project, user);
             if (projectAccessOptional.isPresent()) {
                 System.out.println("Found project access");
-                map.getMarkers();
+                if (projectAccessOptional.get().getRole() == AccessRole.ADMIN) {
+                    map.getMarkers();
+                }
+                else {
+                    map.setMarkers(map.getMarkers().stream().filter(Marker::getVisibility).toList());
+                }
                 return map;
             }
         }

@@ -21,6 +21,9 @@ public class Message {
     @Column(columnDefinition = "TEXT")
     private String text;
 
+    @Column(name = "visibility")
+    private Boolean visibility;
+
     @Column(name = "created_at")
     private String createdAt;
 
@@ -59,6 +62,14 @@ public class Message {
 
     public void setText(String text) {
         this.text = text;
+    }
+
+    public Boolean getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
     }
 
     public String getCreatedAt() {

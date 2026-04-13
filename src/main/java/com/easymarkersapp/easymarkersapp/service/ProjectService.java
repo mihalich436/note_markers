@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
+import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Project;
 import com.easymarkersapp.easymarkersapp.model.ProjectAccess;
 import com.easymarkersapp.easymarkersapp.model.User;
@@ -23,12 +24,13 @@ public class ProjectService {
         return projectRepository.findByOwnerId(ownerId);
     }
 
-    @Transactional
+//    @Transactional
     public List<Project> findByUser(User user) {
-        List<Project> projects = projectRepository.findByOwnerId(user.getId());
-        List<ProjectAccess> projectAccesses = accessRepository.findByUser(user);
-        projects.addAll(projectAccesses.stream().map(ProjectAccess::getProject).toList());
-        return projects;
+//        List<Project> projects = projectRepository.findByOwnerId(user.getId());
+//        List<ProjectAccess> projectAccesses = accessRepository.findByUser(user);
+//        projects.addAll(projectAccesses.stream().map(ProjectAccess::getProject).toList());
+//        return projects;
+        return accessRepository.findByUser(user).stream().map(ProjectAccess::getProject).toList();
     }
 
     @Transactional
@@ -44,8 +46,12 @@ public class ProjectService {
     public Optional<Project> findById(Long id){
         return projectRepository.findById(id);
     }
+    @Transactional
     public Project save(Project project) {
-        return projectRepository.save(project);
+        Project createdProject = projectRepository.save(project);
+        ProjectAccess projectAccess = new ProjectAccess(createdProject, new User(createdProject.getOwnerId()), AccessRole.ADMIN, "Владелец");
+        accessRepository.save(projectAccess);
+        return createdProject;
     }
     public boolean existsById(Long projectId) {
         return projectRepository.existsById(projectId);

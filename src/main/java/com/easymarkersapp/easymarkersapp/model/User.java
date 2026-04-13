@@ -29,6 +29,14 @@ public class User {
 //    @JsonIgnore
 //    private List<Project> projects = new ArrayList<>();
 
+
+    public User(Long id) {
+        this.id = id;
+    }
+
+    public User() {
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

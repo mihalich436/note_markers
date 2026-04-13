@@ -27,6 +27,8 @@ public class Marker {
     private String shape;
     private Integer size;
 
+    private Boolean visibility;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -55,6 +57,7 @@ public class Marker {
         this.color = createRequest.getColor();
         this.shape = createRequest.getShape();
         this.size = createRequest.getSize();
+        this.visibility = createRequest.getVisibility();
     }
 
     public Marker() {
@@ -143,6 +146,14 @@ public class Marker {
         this.size = size;
     }
 
+    public Boolean getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -192,5 +203,6 @@ public class Marker {
         this.color = createRequest.getColor();
         this.shape = createRequest.getShape();
         this.size = createRequest.getSize();
+        this.visibility = createRequest.getVisibility();
     }
 }

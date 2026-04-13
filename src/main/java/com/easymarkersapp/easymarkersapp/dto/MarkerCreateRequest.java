@@ -11,6 +11,8 @@ public class MarkerCreateRequest {
     private String shape;
     private Integer size;
 
+    private Boolean visibility;
+
     public String getTitle() {
         return title;
     }
@@ -73,5 +75,13 @@ public class MarkerCreateRequest {
 
     public void setSize(Integer size) {
         this.size = size;
+    }
+
+    public Boolean getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
     }
 }

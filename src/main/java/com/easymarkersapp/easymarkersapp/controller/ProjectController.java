@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RestController
@@ -143,33 +144,31 @@ public class ProjectController {
         if (project == null) {
             return ResponseEntity.notFound().build();
         }
-        // Проверяем доступ (владелец или администратор)
+        // Проверяем доступ (владелец)
         if (!project.getOwnerId().equals(currentUser.getId())) {
             return ResponseEntity.status(403).body("Нет прав на управление доступом");
         }
 
-        List<AccessUserDTO> usersWithAccess = new ArrayList<>();
-
         // Добавляем владельца
-        usersWithAccess.add(new AccessUserDTO(
-                project.getOwner().getId(),
-                project.getOwner().getUsername(),
-                project.getOwner().getEmail(),
-                "OWNER",
-                "Владелец",
-                true
-        ));
+//        usersWithAccess.add(new AccessUserDTO(
+//                project.getOwner().getId(),
+//                project.getOwner().getUsername(),
+//                project.getOwner().getEmail(),
+//                "OWNER",
+//                "Владелец",
+//                true
+//        ));
 
         // Добавляем пользователей с доступом
         List<ProjectAccess> accesses = accessService.findByProject(project);
-        usersWithAccess.addAll(accesses.stream()
+        List<AccessUserDTO> usersWithAccess = new ArrayList<>(accesses.stream()
                 .map(access -> new AccessUserDTO(
                         access.getUser().getId(),
                         access.getUser().getUsername(),
                         access.getUser().getEmail(),
                         access.getRole().name(),
                         access.getRole().getDisplayName(),
-                        false
+                        Objects.equals(access.getUser().getId(), project.getOwner().getId())
                 )).toList());
 
         return ResponseEntity.ok(usersWithAccess);
