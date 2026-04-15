@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
+import com.easymarkersapp.easymarkersapp.dto.MapWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.MapRepository;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
@@ -24,7 +25,7 @@ public class MapService {
         return mapRepository.findById(id);
     }
     @Transactional
-    public Map findByIdAndCheckAccess(Long id, User user) {
+    public MapWithRoleDTO findByIdAndCheckAccess(Long id, User user) {
         Optional<Map> mapOptional = mapRepository.findById(id);
         if (mapOptional.isPresent()) {
             Map map = mapOptional.get();
@@ -36,33 +37,44 @@ public class MapService {
 //            }
             Optional<ProjectAccess> projectAccessOptional = accessRepository.findByProjectAndUser(project, user);
             if (projectAccessOptional.isPresent()) {
-                System.out.println("Found project access");
-                if (projectAccessOptional.get().getRole() == AccessRole.ADMIN) {
+                ProjectAccess projectAccess = projectAccessOptional.get();
+                if (projectAccess.getRole() == AccessRole.ADMIN) {
                     map.getMarkers();
                 }
                 else {
                     map.setMarkers(map.getMarkers().stream().filter(Marker::getVisibility).toList());
                 }
-                return map;
+                return new MapWithRoleDTO(map, projectAccess.getRole().name());
             }
         }
         return null;
     }
+    @Transactional
     public boolean existsByIdAndUser(Long id, User user) {
         Optional<Map> mapOptional = mapRepository.findById(id);
         if (mapOptional.isPresent()) {
             Map map = mapOptional.get();
-            Project project = map.getProject();
-            if (project.getOwnerId().equals(user.getId())) {
-                System.out.println("Exists by owner");
-                return true;
-            }
+            Project project = new Project(map.getProjectId());
             if (accessRepository.existsByProjectAndUser(project, user)) {
                 System.out.println("Found project access");
                 return true;
             }
+//            if (project.getOwnerId().equals(user.getId())) {
+//                System.out.println("Exists by owner");
+//                return true;
+//            }
         }
         return false;
+    }
+    @Transactional
+    public ProjectAccess getRoleByIdAndUser(Long id, User user) {
+        Optional<Map> mapOptional = mapRepository.findById(id);
+        if (mapOptional.isPresent()) {
+            Map map = mapOptional.get();
+            Project project = new Project(map.getProjectId());
+            return accessRepository.findByProjectAndUser(project, user).orElse(null);
+        }
+        return null;
     }
     public Optional<Map> findByIdAndProjectId(Long mapId, Long projectId) {
         return mapRepository.findByIdAndProjectId(mapId, projectId);

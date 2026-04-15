@@ -2,10 +2,9 @@ package com.easymarkersapp.easymarkersapp.controller;
 
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
 import com.easymarkersapp.easymarkersapp.dto.MapCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.MapWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.dto.MarkerCreateRequest;
-import com.easymarkersapp.easymarkersapp.model.Map;
-import com.easymarkersapp.easymarkersapp.model.Marker;
-import com.easymarkersapp.easymarkersapp.model.User;
+import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.service.MapService;
 import com.easymarkersapp.easymarkersapp.service.MarkerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,7 +150,7 @@ public class MapController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getMap(@PathVariable Long id) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Map map = mapService.findByIdAndCheckAccess(id, currentUser);
+        MapWithRoleDTO map = mapService.findByIdAndCheckAccess(id, currentUser);
         if (map != null) {
             return ResponseEntity.ok(map);
         }
@@ -162,8 +161,10 @@ public class MapController {
     @PostMapping("/{id}/markers")
     public ResponseEntity<?> createMarker(@PathVariable Long id, @RequestBody MarkerCreateRequest request) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        //> check user's role
-        if (mapService.existsByIdAndUser(id, currentUser)) {
+        ProjectAccess access = mapService.getRoleByIdAndUser(id, currentUser);
+        System.out.println("Role: " + access.getRole().getDisplayName());
+        if (access.getRole().hasAccess(AccessRole.EDITOR)) {
+            System.out.println("Has access");
             Marker markerToAdd = new Marker(request);
             markerToAdd.setMapId(id);
             Marker marker = markerService.save(markerToAdd);

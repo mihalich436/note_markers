@@ -15,4 +15,7 @@ public enum AccessRole {
     public String getDisplayName() {
         return displayName;
     }
+    public boolean hasAccess(AccessRole accessRole) {
+        return this.ordinal() >= accessRole.ordinal();
+    }
 }
