@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
+import com.easymarkersapp.easymarkersapp.dto.MarkerRequest;
 import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Marker;
 import com.easymarkersapp.easymarkersapp.model.ProjectAccess;
@@ -30,6 +31,20 @@ public class MarkerService {
             ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
             if (access != null && access.getRole().hasAccess(requiredRole)) {
                 return marker;
+            }
+        }
+        return null;
+    }
+
+    @Transactional
+    public Marker updateByIdAndCheckAccess(MarkerRequest request, Long id, User user, AccessRole requiredRole) {
+        Optional<Marker> markerOptional = markerRepository.findById(id);
+        if (markerOptional.isPresent()) {
+            Marker marker = markerOptional.get();
+            ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
+            if (access != null && access.getRole().hasAccess(requiredRole)) {
+                request.updateMarker(marker);
+                return markerRepository.save(marker);
             }
         }
         return null;

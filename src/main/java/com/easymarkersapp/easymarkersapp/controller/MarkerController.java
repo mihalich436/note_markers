@@ -1,7 +1,9 @@
 package com.easymarkersapp.easymarkersapp.controller;
 
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
-import com.easymarkersapp.easymarkersapp.dto.MarkerCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
+import com.easymarkersapp.easymarkersapp.dto.MarkerMoveRequest;
+import com.easymarkersapp.easymarkersapp.dto.MarkerMoveResponse;
 import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Marker;
 import com.easymarkersapp.easymarkersapp.model.User;
@@ -18,14 +20,21 @@ public class MarkerController {
     @Autowired
     private MarkerService markerService;
     @PostMapping("/{id}")
-    public ResponseEntity<?> editMarker(@PathVariable Long id, @RequestBody MarkerCreateRequest request) {
+    public ResponseEntity<?> editMarker(@PathVariable Long id, @RequestBody MarkerSaveRequest request) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Marker marker = markerService.findByIdAndCheckAccess(id, currentUser, AccessRole.EDITOR);
+        Marker marker = markerService.updateByIdAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
         if (marker != null) {
-            marker.update(request);
-            //> second transaction to db
-            Marker updatedMarker = markerService.save(marker);
-            return ResponseEntity.ok(updatedMarker);
+            return ResponseEntity.ok(marker);
+        }
+        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
+    }
+
+    @PostMapping("/{id}/move")
+    public ResponseEntity<?> moveMarker(@PathVariable Long id, @RequestBody MarkerMoveRequest request) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Marker marker = markerService.updateByIdAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
+        if (marker != null) {
+            return ResponseEntity.ok(new MarkerMoveResponse(marker));
         }
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
     }

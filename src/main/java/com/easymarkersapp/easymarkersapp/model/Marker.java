@@ -1,8 +1,7 @@
 package com.easymarkersapp.easymarkersapp.model;
 
-import com.easymarkersapp.easymarkersapp.dto.MarkerCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -48,7 +47,7 @@ public class Marker {
 //    @JsonManagedReference
     private List<Message> messages = new ArrayList<>();
 
-    public Marker(MarkerCreateRequest createRequest) {
+    public Marker(MarkerSaveRequest createRequest) {
         this.title = createRequest.getTitle();
         this.note = createRequest.getNote();
         this.description = createRequest.getDescription();
@@ -192,17 +191,5 @@ public class Marker {
 
     public void setMap(Map map) {
         this.map = map;
-    }
-
-    public void update(MarkerCreateRequest createRequest) {
-        this.title = createRequest.getTitle();
-        this.note = createRequest.getNote();
-        this.description = createRequest.getDescription();
-        this.x = createRequest.getX();
-        this.y = createRequest.getY();
-        this.color = createRequest.getColor();
-        this.shape = createRequest.getShape();
-        this.size = createRequest.getSize();
-        this.visibility = createRequest.getVisibility();
     }
 }

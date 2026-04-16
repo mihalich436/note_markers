@@ -1,9 +1,8 @@
 package com.easymarkersapp.easymarkersapp.controller;
 
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
-import com.easymarkersapp.easymarkersapp.dto.MapCreateRequest;
 import com.easymarkersapp.easymarkersapp.dto.MapWithRoleDTO;
-import com.easymarkersapp.easymarkersapp.dto.MarkerCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.service.MapService;
 import com.easymarkersapp.easymarkersapp.service.MarkerService;
@@ -159,7 +158,7 @@ public class MapController {
     }
 
     @PostMapping("/{id}/markers")
-    public ResponseEntity<?> createMarker(@PathVariable Long id, @RequestBody MarkerCreateRequest request) {
+    public ResponseEntity<?> createMarker(@PathVariable Long id, @RequestBody MarkerSaveRequest request) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ProjectAccess access = mapService.getRoleByIdAndUser(id, currentUser);
         System.out.println("Role: " + access.getRole().getDisplayName());
@@ -167,6 +166,7 @@ public class MapController {
             System.out.println("Has access");
             Marker markerToAdd = new Marker(request);
             markerToAdd.setMapId(id);
+            //> second transaction to db
             Marker marker = markerService.save(markerToAdd);
             return ResponseEntity.ok(marker);
         }

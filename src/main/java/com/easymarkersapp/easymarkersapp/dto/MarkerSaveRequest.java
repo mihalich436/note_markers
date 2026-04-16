@@ -1,6 +1,8 @@
 package com.easymarkersapp.easymarkersapp.dto;
 
-public class MarkerCreateRequest {
+import com.easymarkersapp.easymarkersapp.model.Marker;
+
+public class MarkerSaveRequest implements MarkerRequest {
     private String title;
     private String note;
     private String description;
@@ -83,5 +85,18 @@ public class MarkerCreateRequest {
 
     public void setVisibility(Boolean visibility) {
         this.visibility = visibility;
+    }
+
+    @Override
+    public void updateMarker(Marker marker) {
+        marker.setTitle(this.title);
+        marker.setNote(this.note);
+        marker.setDescription(this.description);
+        marker.setX(this.x);
+        marker.setY(this.y);
+        marker.setColor(this.color);
+        marker.setShape(this.shape);
+        marker.setSize(this.size);
+        marker.setVisibility(this.visibility);
     }
 }
