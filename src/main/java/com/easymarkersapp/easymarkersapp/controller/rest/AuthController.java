@@ -1,4 +1,4 @@
-package com.easymarkersapp.easymarkersapp.controller;
+package com.easymarkersapp.easymarkersapp.controller.rest;
 
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
 import com.easymarkersapp.easymarkersapp.dto.LoginRequest;
