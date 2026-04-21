@@ -41,13 +41,22 @@ public class MarkerService {
         Optional<Marker> markerOptional = markerRepository.findById(id);
         if (markerOptional.isPresent()) {
             Marker marker = markerOptional.get();
+            boolean visibilityPrev = marker.getVisibility();
             ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
             if (access != null && access.getRole().hasAccess(requiredRole)) {
                 request.updateMarker(marker);
-                return markerRepository.save(marker);
+                Marker updatedMarker = markerRepository.save(marker);
+                if (!visibilityPrev && updatedMarker.getVisibility()) {
+                    updatedMarker.getMessages();
+                }
+                return updatedMarker;
             }
         }
         return null;
+    }
+
+    public void deleteById(Long id) {
+        markerRepository.deleteById(id);
     }
 
     @Transactional

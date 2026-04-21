@@ -61,4 +61,14 @@ public class User {
     public boolean projectBelongUser(Project project){
         return Objects.equals(project.getOwnerId(), this.getId());
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", createdAt=" + createdAt +
+                '}';
+    }
 }
