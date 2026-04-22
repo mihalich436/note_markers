@@ -51,7 +51,6 @@ public class ProjectController {
 
         if (project != null) {
 //            Project project = projectOptional.get().getProject();
-            System.out.println(project);
 //            if (currentUser.projectBelongUser(project)){
             return ResponseEntity.ok(project);
 //            }
@@ -72,7 +71,29 @@ public class ProjectController {
         return ResponseEntity.ok(newProject);
     }
 
-    @GetMapping("/{projectId}/maps") //> fix for shared access
+    @PutMapping("/{projectId}")
+    public ResponseEntity<?> editProject(@PathVariable Long projectId, @RequestBody ProjectCreateRequest createRequest) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Project project = projectService.update(projectId, createRequest, currentUser.getId());
+        if (project != null) {
+            return ResponseEntity.ok(project);
+        }
+
+        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Project not found"));
+    }
+
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<?> deleteProject(@PathVariable Long projectId) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (projectService.delete(projectId, currentUser.getId())) {
+            return ResponseEntity.ok(projectId);
+        }
+
+        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Project not found"));
+    }
+
+    @GetMapping("/{projectId}/maps") //> fix for shared access (maybe not used)
     public ResponseEntity<?> getMaps(@PathVariable Long projectId) {
         Optional<Project> projectOptional = projectService.findById(projectId);
         if (projectOptional.isPresent()) {
@@ -113,18 +134,34 @@ public class ProjectController {
             @PathVariable Long projectId,
             @PathVariable Long mapId
     ) {
-        System.out.println("editMap");
         Optional<Map> mapOptional = mapService.findByIdAndProjectId(mapId, projectId);
         if (mapOptional.isPresent()) {
             User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             Map map = mapOptional.get();
-            System.out.println(map);
             if (currentUser.projectBelongUser(map.getProject())){
             map.setTitle(editRequest.getTitle());
             map.setDescription(editRequest.getDescription());
             map.setImageUrl(editRequest.getImageUrl());
             Map newMap = mapService.save(map);
             return ResponseEntity.ok(newMap);
+            }
+            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
+        }
+        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid map or project id"));
+    }
+
+    @DeleteMapping("/{projectId}/maps/{mapId}") //> fix for shared access (admin can edit map)
+    public ResponseEntity<?> deleteMap(
+            @PathVariable Long projectId,
+            @PathVariable Long mapId
+    ) {
+        Optional<Map> mapOptional = mapService.findByIdAndProjectId(mapId, projectId);
+        if (mapOptional.isPresent()) {
+            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            Map map = mapOptional.get();
+            if (currentUser.projectBelongUser(map.getProject())){
+                mapService.delete(map);
+                return ResponseEntity.ok(mapId);
             }
             return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
         }

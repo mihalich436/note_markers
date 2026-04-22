@@ -161,9 +161,7 @@ public class MapController {
     public ResponseEntity<?> createMarker(@PathVariable Long id, @RequestBody MarkerSaveRequest request) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         ProjectAccess access = mapService.getRoleByIdAndUser(id, currentUser);
-        System.out.println("Role: " + access.getRole().getDisplayName());
         if (access.getRole().hasAccess(AccessRole.EDITOR)) {
-            System.out.println("Has access");
             Marker markerToAdd = new Marker(request);
             markerToAdd.setMapId(id);
             //> second transaction to db

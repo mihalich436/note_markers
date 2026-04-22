@@ -55,10 +55,7 @@ public class MapService {
         if (mapOptional.isPresent()) {
             Map map = mapOptional.get();
             Project project = new Project(map.getProjectId());
-            if (accessRepository.existsByProjectAndUser(project, user)) {
-                System.out.println("Found project access");
-                return true;
-            }
+            return accessRepository.existsByProjectAndUser(project, user);
 //            if (project.getOwnerId().equals(user.getId())) {
 //                System.out.println("Exists by owner");
 //                return true;
@@ -81,5 +78,9 @@ public class MapService {
     }
     public Map save(Map map) {
         return mapRepository.save(map);
+    }
+
+    public void delete(Map map) {
+        mapRepository.delete(map);
     }
 }

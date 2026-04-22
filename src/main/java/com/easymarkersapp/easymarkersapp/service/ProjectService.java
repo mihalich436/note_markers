@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
+import com.easymarkersapp.easymarkersapp.dto.ProjectCreateRequest;
 import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Project;
 import com.easymarkersapp.easymarkersapp.model.ProjectAccess;
@@ -52,6 +53,27 @@ public class ProjectService {
         ProjectAccess projectAccess = new ProjectAccess(createdProject, new User(createdProject.getOwnerId()), AccessRole.ADMIN, "Владелец");
         accessRepository.save(projectAccess);
         return createdProject;
+    }
+
+    @Transactional
+    public Project update(Long projectId, ProjectCreateRequest request, Long userId) {
+        Optional<Project> projectOptional = projectRepository.findByIdAndOwnerId(projectId, userId);
+        if (projectOptional.isPresent()) {
+            Project project = projectOptional.get();
+            project.setTitle(request.getTitle());
+            project.setDescription(request.getDescription());
+            return projectRepository.save(project);
+        }
+        return null;
+    }
+
+    @Transactional
+    public boolean delete(Long projectId, Long userId) {
+        if (projectRepository.existsByIdAndOwnerId(projectId, userId)) {
+            projectRepository.deleteById(projectId);
+            return true;
+        }
+        return false;
     }
     public boolean existsById(Long projectId) {
         return projectRepository.existsById(projectId);
