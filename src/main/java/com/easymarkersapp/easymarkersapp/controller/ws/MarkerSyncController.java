@@ -36,12 +36,9 @@ public class MarkerSyncController {
     @MessageMapping("map/{id}/markers")
     public void addMarker(@DestinationVariable Long id, MarkerSaveRequest request,
                           SimpMessageHeaderAccessor headerAccessor) {
-        System.out.println("add marker");
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
         ProjectAccess access = mapService.getRoleByIdAndUser(id, currentUser);
-        System.out.println("Role: " + access.getRole().getDisplayName());
         if (access.getRole().hasAccess(AccessRole.EDITOR)) {
-            System.out.println("Has access");
             Marker markerToAdd = new Marker(request);
             markerToAdd.setMapId(id);
             //> second transaction to db
