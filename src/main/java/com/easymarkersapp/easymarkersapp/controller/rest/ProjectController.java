@@ -93,77 +93,60 @@ public class ProjectController {
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Project not found"));
     }
 
-    @GetMapping("/{projectId}/maps") //> fix for shared access (maybe not used)
+    @GetMapping("/{projectId}/maps")
     public ResponseEntity<?> getMaps(@PathVariable Long projectId) {
-        Optional<Project> projectOptional = projectService.findById(projectId);
-        if (projectOptional.isPresent()) {
-            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (currentUser.projectBelongUser(projectOptional.get())){
-                return ResponseEntity.ok(projectOptional.get().getMaps());
-            }
-            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Project project = projectService.findByProjectIdAndUser(projectId, currentUser);
+        if (project != null) {
+            return ResponseEntity.ok(project.getMaps());
         }
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid project id"));
     }
 
-    @PostMapping("/{projectId}/maps") //> fix for shared access (admin can create map)
+    @PostMapping("/{projectId}/maps")
     public ResponseEntity<?> createMap(@RequestBody MapCreateRequest createRequest, @PathVariable Long projectId) {
-        Optional<Project> projectOptional = projectService.findById(projectId);
-        if (projectOptional.isPresent()) {
-            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (currentUser.projectBelongUser(projectOptional.get())){
-                Map map = new Map();
-                map.setTitle(createRequest.getTitle());
-                map.setDescription(createRequest.getDescription());
-                map.setImageUrl(createRequest.getImageUrl());
-                map.setProjectId(projectId);
-//                Project project = new Project();
-//                project.setId(projectId);
-//                map.setProject(project);
-                Map newMap = mapService.save(map);
-                return ResponseEntity.ok(newMap);
-            }
-            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Project project = projectService.findByProjectIdAndUserWithRole(projectId, currentUser, AccessRole.ADMIN);
+        if (project != null) {
+            Map map = new Map();
+            map.setTitle(createRequest.getTitle());
+            map.setDescription(createRequest.getDescription());
+            map.setImageUrl(createRequest.getImageUrl());
+            map.setProjectId(projectId);
+            Map newMap = mapService.save(map);
+            return ResponseEntity.ok(newMap);
         }
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid project id"));
     }
 
-    @PutMapping("/{projectId}/maps/{mapId}") //> fix for shared access (admin can edit map)
+    @PutMapping("/{projectId}/maps/{mapId}")
     public ResponseEntity<?> editMap(
             @RequestBody MapCreateRequest editRequest,
             @PathVariable Long projectId,
             @PathVariable Long mapId
     ) {
-        Optional<Map> mapOptional = mapService.findByIdAndProjectId(mapId, projectId);
-        if (mapOptional.isPresent()) {
-            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Map map = mapOptional.get();
-            if (currentUser.projectBelongUser(map.getProject())){
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map map = mapService.findByIdAndProjectIdAndCheckRole(mapId, projectId, currentUser, AccessRole.ADMIN);
+        if (map != null) {
             map.setTitle(editRequest.getTitle());
             map.setDescription(editRequest.getDescription());
             map.setImageUrl(editRequest.getImageUrl());
-            Map newMap = mapService.save(map);
-            return ResponseEntity.ok(newMap);
-            }
-            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
+            Map updatedMap = mapService.save(map);
+            return ResponseEntity.ok(updatedMap);
         }
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid map or project id"));
     }
 
-    @DeleteMapping("/{projectId}/maps/{mapId}") //> fix for shared access (admin can edit map)
+    @DeleteMapping("/{projectId}/maps/{mapId}")
     public ResponseEntity<?> deleteMap(
             @PathVariable Long projectId,
             @PathVariable Long mapId
     ) {
-        Optional<Map> mapOptional = mapService.findByIdAndProjectId(mapId, projectId);
-        if (mapOptional.isPresent()) {
-            User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            Map map = mapOptional.get();
-            if (currentUser.projectBelongUser(map.getProject())){
-                mapService.delete(map);
-                return ResponseEntity.ok(mapId);
-            }
-            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map map = mapService.findByIdAndProjectIdAndCheckRole(mapId, projectId, currentUser, AccessRole.ADMIN);
+        if (map != null) {
+            mapService.delete(map);
+            return ResponseEntity.ok(mapId);
         }
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid map or project id"));
     }
@@ -302,9 +285,9 @@ public class ProjectController {
         }
 
         // Нельзя менять роль владельца
-        if (project.getOwnerId().equals(userId)) {
-            return ResponseEntity.badRequest().body("Нельзя изменить роль владельца");
-        }
+//        if (project.getOwnerId().equals(userId)) {
+//            return ResponseEntity.badRequest().body("Нельзя изменить роль владельца");
+//        }
 
         ProjectAccess access = accessService.findByProjectAndUser(project, userToUpdate)
                 .orElse(null);

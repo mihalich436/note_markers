@@ -50,6 +50,19 @@ public class MapService {
         return null;
     }
     @Transactional
+    public Map findByIdAndProjectIdAndCheckRole(Long id, Long projectId, User user, AccessRole requiredRole) {
+        Optional<Map> mapOptional = mapRepository.findByIdAndProjectId(id, projectId);
+        if (mapOptional.isPresent()) {
+            Map map = mapOptional.get();
+            Project project = map.getProject();
+            Optional<ProjectAccess> projectAccessOptional = accessRepository.findByProjectAndUser(project, user);
+            if (projectAccessOptional.isPresent() && projectAccessOptional.get().getRole().hasAccess(requiredRole)) {
+                return map;
+            }
+        }
+        return null;
+    }
+    @Transactional
     public boolean existsByIdAndUser(Long id, User user) {
         Optional<Map> mapOptional = mapRepository.findById(id);
         if (mapOptional.isPresent()) {

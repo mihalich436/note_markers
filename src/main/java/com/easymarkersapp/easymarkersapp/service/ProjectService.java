@@ -44,6 +44,18 @@ public class ProjectService {
         return projectAccess.map(ProjectAccess::getProject).orElse(null);
     }
 
+    @Transactional
+    public Project findByProjectIdAndUserWithRole(Long projectId, User user, AccessRole requiredRole) {
+        Optional<ProjectAccess> projectAccess = accessRepository.findByProjectIdAndUser(projectId, user);
+        if (projectAccess.isPresent()) {
+            ProjectAccess access = projectAccess.get();
+            if (access.getRole().hasAccess(requiredRole)) {
+                return access.getProject();
+            }
+        }
+        return null;
+    }
+
     public Optional<Project> findById(Long id){
         return projectRepository.findById(id);
     }
