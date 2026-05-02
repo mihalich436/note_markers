@@ -2,15 +2,17 @@ package com.easymarkersapp.easymarkersapp.service;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.security.Key;
 import java.util.Date;
 
 @Service
 public class JwtService {
-    // В продакшене вынести в application.properties
-    private static final String SECRET_KEY = "mySuperSecretKeyForJWTThatIsAtLeast32CharactersLong1234567890";
-    private static final long EXPIRATION_TIME = 86400000; // 24 часа
+    @Value("${jwt.secret}")
+    private String SECRET_KEY;
+    @Value("${jwt.expiration.ms}")
+    private long EXPIRATION_TIME;
 
     private Key getSigningKey() {
         byte[] keyBytes = SECRET_KEY.getBytes();
@@ -35,13 +37,15 @@ public class JwtService {
                 .getSubject();
     }
 
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token) throws ExpiredJwtException {
         try {
             Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token);
             return true;
+        } catch (ExpiredJwtException e) {
+            throw e;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
