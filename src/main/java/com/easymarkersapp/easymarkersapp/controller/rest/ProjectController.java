@@ -46,8 +46,8 @@ public class ProjectController {
     public ResponseEntity<?> getProject(@PathVariable Long id) {
 //        Optional<Project> projectOptional = projectService.findById(id);
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        Optional<ProjectAccess> projectOptional = accessService.findByProjectIdAndUser(id, currentUser);
-        Project project = projectService.findByProjectIdAndUser(id, currentUser);
+        ProjectWithRoleDTO project = accessService.findByProjectIdAndUserWithMaps(id, currentUser);
+//        Project project = projectService.findByProjectIdAndUser(id, currentUser);
 
         if (project != null) {
 //            Project project = projectOptional.get().getProject();
@@ -112,6 +112,7 @@ public class ProjectController {
             map.setTitle(createRequest.getTitle());
             map.setDescription(createRequest.getDescription());
             map.setImageUrl(createRequest.getImageUrl());
+            map.setVisibility(createRequest.getVisibility());
             map.setProjectId(projectId);
             Map newMap = mapService.save(map);
             return ResponseEntity.ok(newMap);
@@ -131,6 +132,7 @@ public class ProjectController {
             map.setTitle(editRequest.getTitle());
             map.setDescription(editRequest.getDescription());
             map.setImageUrl(editRequest.getImageUrl());
+            map.setVisibility(editRequest.getVisibility());
             Map updatedMap = mapService.save(map);
             return ResponseEntity.ok(updatedMap);
         }

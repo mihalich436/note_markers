@@ -27,6 +27,9 @@ public class Map {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Column(name = "visibility")
+    private Boolean visibility = true;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -92,6 +95,14 @@ public class Map {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Boolean getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
     }
 
     public LocalDateTime getCreatedAt() {

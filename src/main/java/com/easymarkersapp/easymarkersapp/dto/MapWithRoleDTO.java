@@ -5,7 +5,7 @@ import com.easymarkersapp.easymarkersapp.model.Map;
 public class MapWithRoleDTO {
     private Map map;
     private String role;
-    //> add user's nacknames
+    //> add user's nicknames
 
 
     public MapWithRoleDTO() {

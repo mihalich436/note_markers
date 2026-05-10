@@ -4,6 +4,7 @@ public class MapCreateRequest {
     private String title;
     private String description;
     private String imageUrl;
+    private Boolean visibility;
 
     public String getTitle() {
         return title;
@@ -27,5 +28,14 @@ public class MapCreateRequest {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Boolean getVisibility() {
+        if (visibility == null) return true;
+        return visibility;
+    }
+
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
     }
 }

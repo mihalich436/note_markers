@@ -1,9 +1,9 @@
 package com.easymarkersapp.easymarkersapp.service;
 
-import com.easymarkersapp.easymarkersapp.model.Project;
-import com.easymarkersapp.easymarkersapp.model.ProjectAccess;
-import com.easymarkersapp.easymarkersapp.model.User;
+import com.easymarkersapp.easymarkersapp.dto.ProjectWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +27,23 @@ public class ProjectAccessService {
     }
     public Optional<ProjectAccess> findByProjectIdAndUser(Long projectId, User user) {
         return accessRepository.findByProjectIdAndUser(projectId, user);
+    }
+
+    @Transactional
+    public ProjectWithRoleDTO findByProjectIdAndUserWithMaps(Long projectId, User user) {
+        Optional<ProjectAccess> accessOptional = accessRepository.findByProjectIdAndUser(projectId, user);
+        if (accessOptional.isPresent()) {
+            ProjectAccess access = accessOptional.get();
+            Project project = access.getProject();
+            if (access.getRole() == AccessRole.ADMIN) {
+                project.getMaps();
+            }
+            else {
+                project.setMaps(project.getMaps().stream().filter(Map::getVisibility).toList());
+            }
+            return new ProjectWithRoleDTO(project, access.getRole().name());
+        }
+        return null;
     }
 
     public void deleteByProjectAndUser(Project project, User user) {
