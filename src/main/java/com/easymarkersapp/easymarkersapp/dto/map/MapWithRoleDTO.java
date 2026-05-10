@@ -1,4 +1,4 @@
-package com.easymarkersapp.easymarkersapp.dto;
+package com.easymarkersapp.easymarkersapp.dto.map;
 
 import com.easymarkersapp.easymarkersapp.model.Map;
 

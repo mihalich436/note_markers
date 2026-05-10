@@ -1,8 +1,8 @@
 package com.easymarkersapp.easymarkersapp.controller.ws;
 
-import com.easymarkersapp.easymarkersapp.dto.MarkerMoveRequest;
-import com.easymarkersapp.easymarkersapp.dto.MarkerMoveResponse;
-import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerMoveRequest;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerMoveResponse;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
 import com.easymarkersapp.easymarkersapp.dto.ws.SyncResponse;
 import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Marker;
@@ -11,17 +11,12 @@ import com.easymarkersapp.easymarkersapp.model.User;
 import com.easymarkersapp.easymarkersapp.service.MapService;
 import com.easymarkersapp.easymarkersapp.service.MarkerService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
-
-import java.util.Optional;
 
 @Controller
 public class MarkerSyncController {

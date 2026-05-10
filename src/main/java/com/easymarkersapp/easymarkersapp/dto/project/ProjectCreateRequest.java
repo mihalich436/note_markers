@@ -1,4 +1,4 @@
-package com.easymarkersapp.easymarkersapp.dto;
+package com.easymarkersapp.easymarkersapp.dto.project;
 
 public class ProjectCreateRequest {
     private String title;

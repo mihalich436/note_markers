@@ -1,8 +1,8 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
-import com.easymarkersapp.easymarkersapp.dto.MapWithRoleDTO;
-import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
+import com.easymarkersapp.easymarkersapp.dto.map.MapWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.service.MapService;
 import com.easymarkersapp.easymarkersapp.service.MarkerService;

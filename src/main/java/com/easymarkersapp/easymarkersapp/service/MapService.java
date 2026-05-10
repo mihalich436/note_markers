@@ -1,6 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
-import com.easymarkersapp.easymarkersapp.dto.MapWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.dto.map.MapWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.MapRepository;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;

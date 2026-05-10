@@ -1,6 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
-import com.easymarkersapp.easymarkersapp.dto.ProjectWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
 import jakarta.transaction.Transactional;

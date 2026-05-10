@@ -1,4 +1,4 @@
-package com.easymarkersapp.easymarkersapp.dto;
+package com.easymarkersapp.easymarkersapp.dto.project;
 
 import com.easymarkersapp.easymarkersapp.model.Project;
 

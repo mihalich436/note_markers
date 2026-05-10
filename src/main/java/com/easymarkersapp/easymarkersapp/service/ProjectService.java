@@ -1,6 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
-import com.easymarkersapp.easymarkersapp.dto.ProjectCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
 import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Project;
 import com.easymarkersapp.easymarkersapp.model.ProjectAccess;

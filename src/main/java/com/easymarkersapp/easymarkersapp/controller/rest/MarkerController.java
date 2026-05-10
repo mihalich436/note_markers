@@ -1,9 +1,9 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
-import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
-import com.easymarkersapp.easymarkersapp.dto.MarkerMoveRequest;
-import com.easymarkersapp.easymarkersapp.dto.MarkerMoveResponse;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerMoveRequest;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerMoveResponse;
 import com.easymarkersapp.easymarkersapp.model.AccessRole;
 import com.easymarkersapp.easymarkersapp.model.Marker;
 import com.easymarkersapp.easymarkersapp.model.User;

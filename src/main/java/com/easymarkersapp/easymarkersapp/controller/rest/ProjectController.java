@@ -1,6 +1,10 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
 import com.easymarkersapp.easymarkersapp.dto.*;
+import com.easymarkersapp.easymarkersapp.dto.map.MapCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectCard;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.service.MapService;
 import com.easymarkersapp.easymarkersapp.service.ProjectAccessService;
@@ -15,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -33,13 +36,9 @@ public class ProjectController {
     @GetMapping
     public ResponseEntity<?> getProjects() {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        List<Project> projects = projectService.findByOwnerId(currentUser.getId());
-
-//        List<ProjectAccess> projectAccesses = accessService.findByUser(currentUser);
-//        List<Project> projects = projectAccesses.stream().map(ProjectAccess::getProject).collect(Collectors.toList());
 
         List<Project> projects = projectService.findByUser(currentUser);
-        return ResponseEntity.ok(projects);
+        return ResponseEntity.ok(ProjectCard.create(projects, currentUser.getId()));
     }
 
     @GetMapping("/{id}")
@@ -68,7 +67,7 @@ public class ProjectController {
         project.setOwnerId(currentUser.getId());
         Project newProject = projectService.save(project);
 
-        return ResponseEntity.ok(newProject);
+        return ResponseEntity.ok(new ProjectCard(newProject, currentUser.getId()));
     }
 
     @PutMapping("/{projectId}")
@@ -76,7 +75,7 @@ public class ProjectController {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Project project = projectService.update(projectId, createRequest, currentUser.getId());
         if (project != null) {
-            return ResponseEntity.ok(project);
+            return ResponseEntity.ok(new ProjectCard(project, currentUser.getId()));
         }
 
         return ResponseEntity.status(404).body(new AuthResponse(null, null, "Project not found"));

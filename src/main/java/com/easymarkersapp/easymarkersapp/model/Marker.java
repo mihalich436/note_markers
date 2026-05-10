@@ -1,6 +1,6 @@
 package com.easymarkersapp.easymarkersapp.model;
 
-import com.easymarkersapp.easymarkersapp.dto.MarkerSaveRequest;
+import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
