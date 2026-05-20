@@ -189,8 +189,8 @@ public class ProjectController {
                         access.getUser().getEmail(),
                         access.getRole().name(),
                         access.getRole().getDisplayName(),
-                        Objects.equals(access.getUser().getId(), project.getOwner().getId())
-                )).toList());
+                        Objects.equals(access.getUser().getId(), project.getOwner().getId()),
+                        access.getNickname())).toList());
 
         return ResponseEntity.ok(usersWithAccess);
     }
