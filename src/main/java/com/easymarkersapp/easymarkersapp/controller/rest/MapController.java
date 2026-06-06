@@ -143,8 +143,8 @@ public class MapController {
     private MarkerService markerService;
 
     @GetMapping("test")
-    public String getTestMap() {
-        return testMap;
+    public ResponseEntity<?> getTestMap() {
+        return ResponseEntity.ok(testMap);
     }
     @GetMapping("/{id}")
     public ResponseEntity<?> getMap(@PathVariable Long id) {

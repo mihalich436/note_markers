@@ -1,8 +1,11 @@
 package com.easymarkersapp.easymarkersapp.model;
 
+import com.easymarkersapp.easymarkersapp.dto.message.MessageSaveRequest;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "marker_messages")
@@ -25,12 +28,28 @@ public class Message {
     private Boolean visibility;
 
     @Column(name = "created_at")
-    private String createdAt;
+    private LocalDateTime createdAt;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "markerId", nullable = false, insertable = false, updatable = false)
 //    @JsonIgnore
 //    private Marker marker;
+
+
+    public Message() {
+    }
+
+    public Message(MessageSaveRequest request, Long userId) {
+        this.text = request.getText();
+        this.visibility = request.getVisibility();
+        this.markerId = request.getMarkerId();
+        this.userId = userId;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
 
     public Long getId() {
         return id;
@@ -72,15 +91,15 @@ public class Message {
         this.visibility = visibility;
     }
 
-    public String getCreatedAt() {
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-//    public Marker getMarker() {
+    //    public Marker getMarker() {
 //        return marker;
 //    }
 //

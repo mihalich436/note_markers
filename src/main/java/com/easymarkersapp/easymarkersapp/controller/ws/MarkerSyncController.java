@@ -76,15 +76,4 @@ public class MarkerSyncController {
                     new SyncResponse<>("marker", "del", id));
         }
     }
-
-//    @MessageMapping("markers/{id}/message")
-//    public void addMessage(@DestinationVariable Long id, MarkerSaveRequest request,
-//                           SimpMessageHeaderAccessor headerAccessor) {
-//        User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-//        Marker marker = markerService.updateByIdAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
-//        if (marker != null) {
-//            this.template.convertAndSend("/topic/map/" + marker.getMapId(),
-//                    new SyncResponse<>("marker", "upd", marker));
-//        }
-//    }
 }
