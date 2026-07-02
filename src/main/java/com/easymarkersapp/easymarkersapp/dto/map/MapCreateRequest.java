@@ -5,6 +5,7 @@ public class MapCreateRequest {
     private String description;
     private String imageUrl;
     private Boolean visibility;
+    private Boolean isFile;
 
     public String getTitle() {
         return title;
@@ -37,5 +38,13 @@ public class MapCreateRequest {
 
     public void setVisibility(Boolean visibility) {
         this.visibility = visibility;
+    }
+
+    public Boolean getFile() {
+        return isFile;
+    }
+
+    public void setFile(Boolean file) {
+        isFile = file;
     }
 }

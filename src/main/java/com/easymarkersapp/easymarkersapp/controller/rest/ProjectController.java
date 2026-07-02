@@ -113,6 +113,7 @@ public class ProjectController {
             map.setImageUrl(createRequest.getImageUrl());
             map.setVisibility(createRequest.getVisibility());
             map.setProjectId(projectId);
+            map.setFile(createRequest.getFile());
             Map newMap = mapService.save(map);
             return ResponseEntity.ok(newMap);
         }
@@ -132,6 +133,11 @@ public class ProjectController {
             map.setDescription(editRequest.getDescription());
             map.setImageUrl(editRequest.getImageUrl());
             map.setVisibility(editRequest.getVisibility());
+            Boolean isFilePrev = map.getFile();
+            map.setFile(editRequest.getFile());
+            if (!editRequest.getFile() && isFilePrev) {
+                mapService.deleteImage(map);
+            }
             Map updatedMap = mapService.save(map);
             return ResponseEntity.ok(updatedMap);
         }

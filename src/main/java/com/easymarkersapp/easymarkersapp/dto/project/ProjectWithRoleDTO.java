@@ -3,22 +3,27 @@ package com.easymarkersapp.easymarkersapp.dto.project;
 import com.easymarkersapp.easymarkersapp.model.Project;
 
 public class ProjectWithRoleDTO {
-    Project project;
+    ProjectWithMapsLightDto project;
     String role;
 
     public ProjectWithRoleDTO() {
     }
 
     public ProjectWithRoleDTO(Project project, String role) {
+        this.project = new ProjectWithMapsLightDto(project);
+        this.role = role;
+    }
+
+    public ProjectWithRoleDTO(ProjectWithMapsLightDto project, String role) {
         this.project = project;
         this.role = role;
     }
 
-    public Project getProject() {
+    public ProjectWithMapsLightDto getProject() {
         return project;
     }
 
-    public void setProject(Project project) {
+    public void setProject(ProjectWithMapsLightDto project) {
         this.project = project;
     }
 

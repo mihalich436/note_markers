@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.model;
 
+import com.easymarkersapp.easymarkersapp.listener.MapListener;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -10,6 +11,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "maps")
+@EntityListeners(MapListener.class)
 public class Map {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +31,12 @@ public class Map {
 
     @Column(name = "visibility")
     private Boolean visibility = true;
+
+    @Column(name = "is_file")
+    private Boolean isFile;
+
+    @Column(name = "file_version", columnDefinition = "TINYINT UNSIGNED")
+    private Integer fileVersion;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -105,6 +113,22 @@ public class Map {
         this.visibility = visibility;
     }
 
+    public Boolean getFile() {
+        return isFile;
+    }
+
+    public void setFile(Boolean file) {
+        isFile = file;
+    }
+
+    public Integer getFileVersion() {
+        return fileVersion;
+    }
+
+    public void setFileVersion(Integer fileVersion) {
+        this.fileVersion = fileVersion;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -145,6 +169,8 @@ public class Map {
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
+                ", isFile='" + isFile + '\'' +
+                ", fileVersion='" + fileVersion + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
