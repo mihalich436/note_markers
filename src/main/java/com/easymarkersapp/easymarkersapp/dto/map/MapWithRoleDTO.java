@@ -5,15 +5,17 @@ import com.easymarkersapp.easymarkersapp.model.Map;
 public class MapWithRoleDTO {
     private Map map;
     private String role;
-    //> add user's nicknames
-
+    private Long userId;
+    private java.util.Map<Long, String> userIdToNick;
 
     public MapWithRoleDTO() {
     }
 
-    public MapWithRoleDTO(Map map, String role) {
+    public MapWithRoleDTO(Map map, String role, Long userId, java.util.Map<Long, String> userIdToNick) {
         this.map = map;
         this.role = role;
+        this.userId = userId;
+        this.userIdToNick = userIdToNick;
     }
 
     public Map getMap() {
@@ -30,5 +32,21 @@ public class MapWithRoleDTO {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public java.util.Map<Long, String> getUserIdToNick() {
+        return userIdToNick;
+    }
+
+    public void setUserIdToNick(java.util.Map<Long, String> userIdToNick) {
+        this.userIdToNick = userIdToNick;
     }
 }

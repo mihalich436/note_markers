@@ -1,6 +1,5 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
-import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
 import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
 import com.easymarkersapp.easymarkersapp.dto.marker.MarkerMoveRequest;
 import com.easymarkersapp.easymarkersapp.dto.marker.MarkerMoveResponse;
@@ -26,7 +25,7 @@ public class MarkerController {
         if (marker != null) {
             return ResponseEntity.ok(marker);
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
+        return ResponseEntity.status(404).body( "Cannot access map");
     }
 
     @PostMapping("/{id}/move")
@@ -36,7 +35,7 @@ public class MarkerController {
         if (marker != null) {
             return ResponseEntity.ok(new MarkerMoveResponse(marker));
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
+        return ResponseEntity.status(404).body("Cannot access map");
     }
 
     @DeleteMapping("/{id}")
@@ -45,6 +44,6 @@ public class MarkerController {
         if (markerService.deleteByIdAndCheckAccess(id, currentUser)) {
             return ResponseEntity.ok(id);
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access map"));
+        return ResponseEntity.status(404).body("Cannot access map");
     }
 }

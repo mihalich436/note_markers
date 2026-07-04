@@ -55,7 +55,7 @@ public class ProjectController {
 //            }
 //            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Cannot access project"));
+        return ResponseEntity.status(404).body("Cannot access project");
     }
 
     @PostMapping
@@ -78,7 +78,7 @@ public class ProjectController {
             return ResponseEntity.ok(new ProjectCard(project, currentUser.getId()));
         }
 
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Project not found"));
+        return ResponseEntity.status(404).body("Project not found");
     }
 
     @DeleteMapping("/{projectId}")
@@ -89,7 +89,7 @@ public class ProjectController {
             return ResponseEntity.ok(projectId);
         }
 
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Project not found"));
+        return ResponseEntity.status(404).body("Project not found");
     }
 
     @GetMapping("/{projectId}/maps")
@@ -99,7 +99,7 @@ public class ProjectController {
         if (project != null) {
             return ResponseEntity.ok(project.getMaps());
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid project id"));
+        return ResponseEntity.status(404).body("Invalid project id");
     }
 
     @PostMapping("/{projectId}/maps")
@@ -117,7 +117,7 @@ public class ProjectController {
             Map newMap = mapService.save(map);
             return ResponseEntity.ok(newMap);
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid project id"));
+        return ResponseEntity.status(404).body("Invalid project id");
     }
 
     @PutMapping("/{projectId}/maps/{mapId}")
@@ -141,7 +141,7 @@ public class ProjectController {
             Map updatedMap = mapService.save(map);
             return ResponseEntity.ok(updatedMap);
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid map or project id"));
+        return ResponseEntity.status(404).body("Invalid map or project id");
     }
 
     @DeleteMapping("/{projectId}/maps/{mapId}")
@@ -155,7 +155,7 @@ public class ProjectController {
             mapService.delete(map);
             return ResponseEntity.ok(mapId);
         }
-        return ResponseEntity.status(404).body(new AuthResponse(null, null, "Invalid map or project id"));
+        return ResponseEntity.status(404).body("Invalid map or project id");
     }
 
     // ========== УПРАВЛЕНИЕ ДОСТУПОМ ==========

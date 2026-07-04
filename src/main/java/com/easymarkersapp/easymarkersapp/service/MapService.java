@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class MapService {
@@ -37,7 +38,10 @@ public class MapService {
         if (mapOptional.isPresent()) {
             Map map = mapOptional.get();
             Project project = map.getProject();
-            Optional<ProjectAccess> projectAccessOptional = accessRepository.findByProjectAndUser(project, user);
+            List<ProjectAccess> projectAccessList = accessRepository.findByProject(project);
+            Optional<ProjectAccess> projectAccessOptional = projectAccessList.stream()
+                    .filter(projectAccess -> user.getId().equals(projectAccess.getUser().getId()))
+                    .findFirst();
             if (projectAccessOptional.isPresent()) {
                 ProjectAccess projectAccess = projectAccessOptional.get();
                 if (projectAccess.getRole() == AccessRole.ADMIN) {
@@ -46,7 +50,12 @@ public class MapService {
                 else {
                     map.setMarkers(map.getMarkers().stream().filter(Marker::getVisibility).toList());
                 }
-                return new MapWithRoleDTO(map, projectAccess.getRole().name());
+                java.util.Map<Long, String> userIdToNick = projectAccessList.stream()
+                        .collect(Collectors.toMap(
+                                access -> access.getUser().getId(),
+                                ProjectAccess::getNickname
+                        ));
+                return new MapWithRoleDTO(map, projectAccess.getRole().name(), user.getId(), userIdToNick);
             }
         }
         return null;
