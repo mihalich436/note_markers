@@ -45,7 +45,7 @@ public class ProjectAccessService {
         }
         return null;
     }
-
+    @Transactional
     public void deleteByProjectAndUser(Project project, User user) {
         accessRepository.deleteByProjectAndUser(project, user);
     }
