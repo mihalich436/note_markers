@@ -3,6 +3,7 @@ package com.easymarkersapp.easymarkersapp.dto.marker;
 import com.easymarkersapp.easymarkersapp.model.Marker;
 
 public class MarkerSaveRequest implements MarkerRequest {
+    private String number;
     private String title;
     private String note;
     private String description;
@@ -14,6 +15,14 @@ public class MarkerSaveRequest implements MarkerRequest {
     private Integer size;
 
     private Boolean visibility;
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
+    }
 
     public String getTitle() {
         return title;
@@ -89,6 +98,7 @@ public class MarkerSaveRequest implements MarkerRequest {
 
     @Override
     public void updateMarker(Marker marker) {
+        marker.setNumber(this.number);
         marker.setTitle(this.title);
         marker.setNote(this.note);
         marker.setDescription(this.description);

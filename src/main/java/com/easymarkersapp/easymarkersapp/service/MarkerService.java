@@ -20,6 +20,10 @@ public class MarkerService {
     private MapService mapService;
 
     public Marker save(Marker marker) {
+        String number = marker.getNumber();
+        if (number != null) {
+            marker.setNumber(number.substring(0, Math.min(3, number.length())));
+        }
         return markerRepository.save(marker);
     }
 
@@ -45,7 +49,7 @@ public class MarkerService {
             ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
             if (access != null && access.getRole().hasAccess(requiredRole)) {
                 request.updateMarker(marker);
-                Marker updatedMarker = markerRepository.save(marker);
+                Marker updatedMarker = this.save(marker);
                 if (!visibilityPrev && updatedMarker.getVisibility()) {
                     updatedMarker.getMessages();
                 }

@@ -15,6 +15,7 @@ public class Marker {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String number;
     private Double x;
     private Double y;
     private String title;
@@ -48,6 +49,7 @@ public class Marker {
     private List<Message> messages = new ArrayList<>();
 
     public Marker(MarkerSaveRequest createRequest) {
+        this.number = createRequest.getNumber();
         this.title = createRequest.getTitle();
         this.note = createRequest.getNote();
         this.description = createRequest.getDescription();
@@ -95,6 +97,14 @@ public class Marker {
 
     public void setY(Double y) {
         this.y = y;
+    }
+
+    public String getNumber() {
+        return number;
+    }
+
+    public void setNumber(String number) {
+        this.number = number;
     }
 
     public String getTitle() {
