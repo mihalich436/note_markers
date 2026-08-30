@@ -1,6 +1,8 @@
 package com.easymarkersapp.easymarkersapp.dto.map;
 
-public class MapCreateRequest {
+import com.easymarkersapp.easymarkersapp.model.Map;
+
+public class MapCreateRequest implements MapRequest {
     private String title;
     private String description;
     private String imageUrl;
@@ -46,5 +48,15 @@ public class MapCreateRequest {
 
     public void setFile(Boolean file) {
         isFile = file;
+    }
+
+    public boolean updateMap(Map map) {
+        map.setTitle(this.getTitle());
+        map.setDescription(this.getDescription());
+        map.setImageUrl(this.getImageUrl());
+        map.setVisibility(this.getVisibility());
+        boolean isFilePrev = map.getFile();
+        map.setFile(this.getFile());
+        return (!this.getFile() && isFilePrev);
     }
 }

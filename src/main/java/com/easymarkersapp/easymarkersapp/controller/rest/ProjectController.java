@@ -2,6 +2,7 @@ package com.easymarkersapp.easymarkersapp.controller.rest;
 
 import com.easymarkersapp.easymarkersapp.dto.*;
 import com.easymarkersapp.easymarkersapp.dto.map.MapCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.map.MapToggleVisibilityRequest;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCard;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
@@ -129,15 +130,34 @@ public class ProjectController {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Map map = mapService.findByIdAndProjectIdAndCheckRole(mapId, projectId, currentUser, AccessRole.ADMIN);
         if (map != null) {
-            map.setTitle(editRequest.getTitle());
-            map.setDescription(editRequest.getDescription());
-            map.setImageUrl(editRequest.getImageUrl());
-            map.setVisibility(editRequest.getVisibility());
-            Boolean isFilePrev = map.getFile();
-            map.setFile(editRequest.getFile());
-            if (!editRequest.getFile() && isFilePrev) {
+//            map.setTitle(editRequest.getTitle());
+//            map.setDescription(editRequest.getDescription());
+//            map.setImageUrl(editRequest.getImageUrl());
+//            map.setVisibility(editRequest.getVisibility());
+//            Boolean isFilePrev = map.getFile();
+//            map.setFile(editRequest.getFile());
+//            if (!editRequest.getFile() && isFilePrev) {
+//                mapService.deleteImage(map);
+//            }
+            if (editRequest.updateMap(map)) {
                 mapService.deleteImage(map);
             }
+            Map updatedMap = mapService.save(map);
+            return ResponseEntity.ok(updatedMap);
+        }
+        return ResponseEntity.status(404).body("Invalid map or project id");
+    }
+
+    @PutMapping("/{projectId}/maps/{mapId}/visibility")
+    public ResponseEntity<?> toggleMapVisibility(
+            @RequestBody MapToggleVisibilityRequest editRequest,
+            @PathVariable Long projectId,
+            @PathVariable Long mapId
+    ) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Map map = mapService.findByIdAndProjectIdAndCheckRole(mapId, projectId, currentUser, AccessRole.ADMIN);
+        if (map != null) {
+            editRequest.updateMap(map);
             Map updatedMap = mapService.save(map);
             return ResponseEntity.ok(updatedMap);
         }
