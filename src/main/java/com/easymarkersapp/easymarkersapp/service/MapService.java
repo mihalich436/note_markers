@@ -48,6 +48,7 @@ public class MapService {
                     map.getMarkers();
                 }
                 else {
+                    if (!map.getVisibility()) return null;
                     map.setMarkers(map.getMarkers().stream().filter(Marker::getVisibility).toList());
                 }
                 java.util.Map<Long, String> userIdToNick = projectAccessList.stream()
