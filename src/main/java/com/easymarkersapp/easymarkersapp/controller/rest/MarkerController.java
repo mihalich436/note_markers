@@ -38,6 +38,16 @@ public class MarkerController {
         return ResponseEntity.status(404).body("Cannot access map");
     }
 
+    @PostMapping("/{id}/copy")
+    public ResponseEntity<?> copyMarker(@PathVariable Long id, @RequestBody MarkerMoveRequest request) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Marker marker = markerService.copyAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
+        if (marker != null) {
+            return ResponseEntity.ok(marker);
+        }
+        return ResponseEntity.status(404).body("Cannot access map");
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteMarker(@PathVariable Long id) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();

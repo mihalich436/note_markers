@@ -202,4 +202,20 @@ public class Marker {
     public void setMap(Map map) {
         this.map = map;
     }
+
+    public Marker copy() {
+        Marker copy = new Marker();
+        copy.setNumber(this.number);
+        copy.setX(this.x);
+        copy.setY(this.y);
+        copy.setTitle(this.title);
+        copy.setNote(this.note);
+        copy.setDescription(this.description);
+        copy.setColor(this.color);
+        copy.setShape(this.shape);
+        copy.setSize(this.size);
+        copy.setVisibility(this.visibility);
+        copy.setMapId(this.mapId);
+        return copy;
+    }
 }

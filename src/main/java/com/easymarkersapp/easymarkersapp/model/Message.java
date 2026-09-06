@@ -1,8 +1,6 @@
 package com.easymarkersapp.easymarkersapp.model;
 
 import com.easymarkersapp.easymarkersapp.dto.message.MessageSaveRequest;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -99,11 +97,12 @@ public class Message {
         this.createdAt = createdAt;
     }
 
-    //    public Marker getMarker() {
-//        return marker;
-//    }
-//
-//    public void setMarker(Marker marker) {
-//        this.marker = marker;
-//    }
+    public Message copyWithoutId(Long markerId) {
+        Message copy = new Message();
+        copy.setText(this.text);
+        copy.setVisibility(this.visibility);
+        copy.setUserId(this.userId);
+        copy.setMarkerId(markerId);
+        return copy;
+    }
 }

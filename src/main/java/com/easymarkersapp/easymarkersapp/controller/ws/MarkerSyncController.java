@@ -65,6 +65,17 @@ public class MarkerSyncController {
         }
     }
 
+    @MessageMapping("markers/{id}/copy")
+    public void copyMarker(@DestinationVariable Long id, MarkerMoveRequest request,
+                           SimpMessageHeaderAccessor headerAccessor) {
+        User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
+        Marker marker = markerService.copyAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
+        if (marker != null) {
+            this.template.convertAndSend("/topic/map/" + marker.getMapId(),
+                    new SyncResponse<>("marker", "add", marker));
+        }
+    }
+
     @MessageMapping("markers/{id}/delete")
     public void deleteMarker(@DestinationVariable Long id,
                            SimpMessageHeaderAccessor headerAccessor) {
