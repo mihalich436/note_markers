@@ -30,8 +30,8 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(new AuthResponse(null, null, "Weak password"));
             }
             User user = userService.register(
-                    request.getUsername(),
-                    request.getEmail(),
+                    request.getUsername().trim(),
+                    request.getEmail().trim(),
                     request.getPassword()
             );
             String token = jwtService.generateToken(user.getEmail());

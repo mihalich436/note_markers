@@ -273,8 +273,9 @@ public class ProjectController {
             return ResponseEntity.badRequest().body("Пользователь уже имеет доступ к проекту");
         }
 
+        String nickname = (request.getNickname() != null) ? request.getNickname().trim() : userToAdd.getUsername();
         // Создаем доступ
-        ProjectAccess access = new ProjectAccess(project, userToAdd, role, request.getNickname().trim());
+        ProjectAccess access = new ProjectAccess(project, userToAdd, role, nickname);
         accessService.save(access);
 
         return ResponseEntity.ok().body("Пользователь добавлен в проект с ролью: " + role.getDisplayName());
