@@ -62,6 +62,25 @@ public class MapService {
         return null;
     }
     @Transactional
+    public MapWithRoleDTO findByIdAndCheckShareAccess(Long id, Long projectId) {
+        Optional<Map> mapOptional = mapRepository.findByIdAndProjectId(id, projectId);
+        if (mapOptional.isPresent()) {
+            Map map = mapOptional.get();
+            Project project = map.getProject();
+            List<ProjectAccess> projectAccessList = accessRepository.findByProject(project);
+
+            if (!map.getVisibility()) return null;
+            map.setMarkers(map.getMarkers().stream().filter(Marker::getVisibility).toList());
+            java.util.Map<Long, String> userIdToNick = projectAccessList.stream()
+                    .collect(Collectors.toMap(
+                            access -> access.getUser().getId(),
+                            ProjectAccess::getNickname
+                    ));
+            return new MapWithRoleDTO(map, AccessRole.READ_ONLY.name(), null, userIdToNick);
+        }
+        return null;
+    }
+    @Transactional
     public Map findByIdAndProjectIdAndCheckRole(Long id, Long projectId, User user, AccessRole requiredRole) {
         Optional<Map> mapOptional = mapRepository.findByIdAndProjectId(id, projectId);
         if (mapOptional.isPresent()) {

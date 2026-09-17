@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
+import com.easymarkersapp.easymarkersapp.config.AccessContext;
 import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
 import com.easymarkersapp.easymarkersapp.dto.map.MapWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
@@ -10,6 +11,7 @@ import com.easymarkersapp.easymarkersapp.service.MarkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,8 +29,17 @@ public class MapController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getMap(@PathVariable Long id) {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        MapWithRoleDTO mapDto = mapService.findByIdAndCheckAccess(id, currentUser);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        MapWithRoleDTO mapDto;
+        if (AccessContext.isUser(auth)) {
+            User currentUser = (User) auth.getPrincipal();
+            mapDto = mapService.findByIdAndCheckAccess(id, currentUser);
+        } else if (AccessContext.isShare(auth)) {
+            mapDto = mapService.findByIdAndCheckShareAccess(id, AccessContext.shareProjectId(auth));
+        } else {
+            return ResponseEntity.status(401).body("Unauthorized");
+        }
+
         if (mapDto != null) {
             Map map = mapDto.getMap();
             if (map.getFile() && map.getFileVersion() != null && map.getFileVersion() > 0) {

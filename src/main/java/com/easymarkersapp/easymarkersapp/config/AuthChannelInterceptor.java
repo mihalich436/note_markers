@@ -1,10 +1,9 @@
 package com.easymarkersapp.easymarkersapp.config;
-import com.easymarkersapp.easymarkersapp.filter.JwtAuthFilter;
 import com.easymarkersapp.easymarkersapp.model.User;
 import com.easymarkersapp.easymarkersapp.service.JwtService;
+import com.easymarkersapp.easymarkersapp.service.ProjectShareService;
 import com.easymarkersapp.easymarkersapp.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
@@ -20,9 +19,11 @@ import java.util.ArrayList;
 @Component
 public class AuthChannelInterceptor implements ChannelInterceptor {
     @Autowired
-    private JwtService jwtTokenProvider; // Ваш сервис для работы с JWT
+    private JwtService jwtTokenProvider;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ProjectShareService shareService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -30,7 +31,8 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             // Извлекаем токен из "родного" STOMP-заголовка
-            final String authToken = accessor.getFirstNativeHeader("Authorization");
+            String authToken = accessor.getFirstNativeHeader("Authorization");
+            String shareToken = accessor.getFirstNativeHeader("X-Share-Token");
 
             if (authToken != null && authToken.startsWith("Bearer ")) {
                 String jwt = authToken.substring(7);
@@ -43,9 +45,7 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                         User user = userOpt.get();
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
-                        SecurityContextHolder.getContext().setAuthentication(auth);
                         accessor.setUser(auth);
-                        SecurityContextHolder.getContext().setAuthentication(auth);
                     }
                     else {
                         throw new RuntimeException("Failed to find user by email");
@@ -53,6 +53,11 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
                 } else {
                     throw new RuntimeException("Invalid or expired token");
                 }
+            } else if (shareToken != null && !shareToken.isBlank() && !StompCommand.SEND.equals(accessor.getCommand())) {
+                Long projectId = shareService.resolveProjectId(shareToken)
+                        .orElseThrow(() -> new RuntimeException("Invalid share token"));
+                ShareTokenAuthentication auth = new ShareTokenAuthentication(projectId, shareToken);
+                accessor.setUser(auth);
             } else {
                 // Если токен не передан, можете либо пропустить (для анонимного доступа), либо кинуть исключение
                 throw new RuntimeException("Missing Authorization header");

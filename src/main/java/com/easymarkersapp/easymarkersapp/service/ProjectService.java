@@ -1,10 +1,8 @@
 package com.easymarkersapp.easymarkersapp.service;
 
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
-import com.easymarkersapp.easymarkersapp.model.AccessRole;
-import com.easymarkersapp.easymarkersapp.model.Project;
-import com.easymarkersapp.easymarkersapp.model.ProjectAccess;
-import com.easymarkersapp.easymarkersapp.model.User;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
 import com.easymarkersapp.easymarkersapp.repository.ProjectRepository;
 import jakarta.transaction.Transactional;
@@ -52,6 +50,18 @@ public class ProjectService {
             if (access.getRole().hasAccess(requiredRole)) {
                 return access.getProject();
             }
+        }
+        return null;
+    }
+
+    @Transactional
+    public ProjectWithRoleDTO findByProjectIdPublic(Long projectId) {
+        Optional<Project> projectOptional = projectRepository.findById(projectId);
+        if (projectOptional.isPresent()) {
+            Project project = projectOptional.get();
+            project.setMaps(project.getMaps().stream().filter(Map::getVisibility).toList());
+
+            return new ProjectWithRoleDTO(project, "READONLY");
         }
         return null;
     }

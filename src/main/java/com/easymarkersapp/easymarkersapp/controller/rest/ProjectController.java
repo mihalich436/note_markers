@@ -1,5 +1,6 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
+import com.easymarkersapp.easymarkersapp.config.AccessContext;
 import com.easymarkersapp.easymarkersapp.dto.*;
 import com.easymarkersapp.easymarkersapp.dto.map.MapCreateRequest;
 import com.easymarkersapp.easymarkersapp.dto.map.MapToggleVisibilityRequest;
@@ -7,12 +8,10 @@ import com.easymarkersapp.easymarkersapp.dto.project.ProjectCard;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.model.*;
-import com.easymarkersapp.easymarkersapp.service.MapService;
-import com.easymarkersapp.easymarkersapp.service.ProjectAccessService;
-import com.easymarkersapp.easymarkersapp.service.ProjectService;
-import com.easymarkersapp.easymarkersapp.service.UserService;
+import com.easymarkersapp.easymarkersapp.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/projects")
@@ -33,6 +33,8 @@ public class ProjectController {
     private UserService userService;
     @Autowired
     private MapService mapService;
+    @Autowired
+    private ProjectShareService shareService;
 
     @GetMapping
     public ResponseEntity<?> getProjects() {
@@ -44,19 +46,30 @@ public class ProjectController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getProject(@PathVariable Long id) {
-//        Optional<Project> projectOptional = projectService.findById(id);
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        ProjectWithRoleDTO project = accessService.findByProjectIdAndUserWithMaps(id, currentUser);
-//        Project project = projectService.findByProjectIdAndUser(id, currentUser);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        if (project != null) {
-//            Project project = projectOptional.get().getProject();
-//            if (currentUser.projectBelongUser(project)){
-            return ResponseEntity.ok(project);
-//            }
-//            return ResponseEntity.status(403).body(new AuthResponse(null, null, "Invalid credentials"));
+        // 1) Пользователь
+        if (AccessContext.isUser(auth)) {
+            User currentUser = (User) auth.getPrincipal();
+            ProjectWithRoleDTO project = accessService.findByProjectIdAndUserWithMaps(id, currentUser);
+            return project != null
+                    ? ResponseEntity.ok(project)
+                    : ResponseEntity.status(404).body("Cannot access project");
         }
-        return ResponseEntity.status(404).body("Cannot access project");
+
+        // 2) Share-токен
+        if (AccessContext.isShare(auth)) {
+            Long shareProjectId = AccessContext.shareProjectId(auth);
+            if (!Objects.equals(shareProjectId, id)) {
+                return ResponseEntity.status(403).body("Share token doesn't match project");
+            }
+            ProjectWithRoleDTO project = projectService.findByProjectIdPublic(id); // readonly DTO
+            return project != null
+                    ? ResponseEntity.ok(project)
+                    : ResponseEntity.status(404).body("Project not found");
+        }
+
+        return ResponseEntity.status(401).body("Unauthorized");
     }
 
     @PostMapping
@@ -364,5 +377,44 @@ public class ProjectController {
         accessService.deleteByProjectAndUser(project, userToRemove);
 
         return ResponseEntity.ok().body("Пользователь удален из проекта");
+    }
+
+    @PostMapping("/{id}/share-link")
+    public ResponseEntity<?> createShareLink(@PathVariable Long id,
+                                             @AuthenticationPrincipal User currentUser) {
+        Project project = projectService.findById(id).orElse(null);
+        if (project == null) return ResponseEntity.notFound().build();
+        if (!currentUser.projectBelongUser(project)) {
+            return ResponseEntity.status(403).body("Только владелец может создавать ссылку");
+        }
+        ProjectShareLink link = shareService.createOrGet(id);
+        return ResponseEntity.ok(link.getToken());
+    }
+
+    @GetMapping("/{id}/share-link")
+    public ResponseEntity<?> getShareLink(@PathVariable Long id,
+                                             @AuthenticationPrincipal User currentUser) {
+        Project project = projectService.findById(id).orElse(null);
+        if (project == null) return ResponseEntity.notFound().build();
+        if (!currentUser.projectBelongUser(project)) {
+            return ResponseEntity.status(403).body("Только владелец может получить ссылку");
+        }
+        Optional<ProjectShareLink> link = shareService.findByProjectId(id);
+        if (link.isPresent()) {
+            return ResponseEntity.ok(link.get().getToken());
+        }
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/{id}/share-link")
+    public ResponseEntity<?> revokeShareLink(@PathVariable Long id,
+                                             @AuthenticationPrincipal User currentUser) {
+        Project project = projectService.findById(id).orElse(null);
+        if (project == null) return ResponseEntity.notFound().build();
+        if (!currentUser.projectBelongUser(project)) {
+            return ResponseEntity.status(403).body("Только владелец может отозвать ссылку");
+        }
+        shareService.revoke(id);
+        return ResponseEntity.ok().build();
     }
 }

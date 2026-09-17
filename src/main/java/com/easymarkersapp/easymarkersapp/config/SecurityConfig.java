@@ -1,6 +1,7 @@
 package com.easymarkersapp.easymarkersapp.config;
 
 import com.easymarkersapp.easymarkersapp.filter.JwtAuthFilter;
+import com.easymarkersapp.easymarkersapp.filter.ShareTokenFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,6 +22,8 @@ public class SecurityConfig {
 
     @Autowired
     private JwtAuthFilter jwtAuthFilter;
+    @Autowired
+    private ShareTokenFilter shareTokenFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) {
@@ -32,13 +35,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/maps/test").permitAll()
                         .requestMatchers(HttpMethod.GET, "/ws/**").permitAll() //> temp
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/projects/*",
+                                "/api/projects/*/maps",
+                                "/api/maps/*").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(customAuthenticationEntryPoint())
                         .accessDeniedHandler(customAccessDeniedHandler())
                 )
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(shareTokenFilter, JwtAuthFilter.class);
 
         return http.build();
     }
