@@ -1,6 +1,7 @@
 package com.easymarkersapp.easymarkersapp.model;
 
 import com.easymarkersapp.easymarkersapp.dto.message.MessageSaveRequest;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -26,6 +27,7 @@ public class Message {
     private Boolean visibility;
 
     @Column(name = "created_at")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
