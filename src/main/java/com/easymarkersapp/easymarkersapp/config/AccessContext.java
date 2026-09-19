@@ -16,8 +16,10 @@ public class AccessContext {
     }
 
     /** projectId, если доступ через share. */
-    public static Long shareProjectId(Authentication a) {
-        return a instanceof ShareTokenAuthentication s ? s.getProjectId() : null;
+    public static Long shareProjectId(Authentication auth) {
+        if (auth instanceof UserAuthentication ua) return ua.getShareProjectId();
+        if (auth instanceof ShareTokenAuthentication sa) return sa.getProjectId();
+        return null;
     }
 
 }

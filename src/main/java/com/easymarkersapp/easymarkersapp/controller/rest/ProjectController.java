@@ -52,14 +52,12 @@ public class ProjectController {
         if (AccessContext.isUser(auth)) {
             User currentUser = (User) auth.getPrincipal();
             ProjectWithRoleDTO project = accessService.findByProjectIdAndUserWithMaps(id, currentUser);
-            return project != null
-                    ? ResponseEntity.ok(project)
-                    : ResponseEntity.status(404).body("Cannot access project");
+            if (project != null) return ResponseEntity.ok(project);
         }
 
         // 2) Share-токен
-        if (AccessContext.isShare(auth)) {
-            Long shareProjectId = AccessContext.shareProjectId(auth);
+        Long shareProjectId = AccessContext.shareProjectId(auth);
+        if (shareProjectId != null) {
             if (!Objects.equals(shareProjectId, id)) {
                 return ResponseEntity.status(403).body("Share token doesn't match project");
             }

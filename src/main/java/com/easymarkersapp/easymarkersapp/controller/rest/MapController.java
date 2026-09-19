@@ -30,14 +30,18 @@ public class MapController {
     @GetMapping("/{id}")
     public ResponseEntity<?> getMap(@PathVariable Long id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        MapWithRoleDTO mapDto;
+        MapWithRoleDTO mapDto = null;
         if (AccessContext.isUser(auth)) {
             User currentUser = (User) auth.getPrincipal();
             mapDto = mapService.findByIdAndCheckAccess(id, currentUser);
-        } else if (AccessContext.isShare(auth)) {
-            mapDto = mapService.findByIdAndCheckShareAccess(id, AccessContext.shareProjectId(auth));
-        } else {
-            return ResponseEntity.status(401).body("Unauthorized");
+        }
+        if (mapDto == null) {
+            Long shareProjectId = AccessContext.shareProjectId(auth);
+            if (shareProjectId != null) {
+                mapDto = mapService.findByIdAndCheckShareAccess(id, shareProjectId);
+            }else {
+                return ResponseEntity.status(401).body("Unauthorized");
+            }
         }
 
         if (mapDto != null) {

@@ -10,11 +10,9 @@ import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
+import java.security.Principal;
 
 @Component
 public class AuthChannelInterceptor implements ChannelInterceptor {
@@ -27,42 +25,46 @@ public class AuthChannelInterceptor implements ChannelInterceptor {
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
-        final StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
+        final StompHeaderAccessor accessor =
+                MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-            // Извлекаем токен из "родного" STOMP-заголовка
-            String authToken = accessor.getFirstNativeHeader("Authorization");
+            String authHeader = accessor.getFirstNativeHeader("Authorization");
             String shareToken = accessor.getFirstNativeHeader("X-Share-Token");
 
-            if (authToken != null && authToken.startsWith("Bearer ")) {
-                String jwt = authToken.substring(7);
-                String userEmail = jwtTokenProvider.extractEmail(jwt); // Извлекаем логин из JWT
-
-                if (userEmail != null && jwtTokenProvider.validateToken(jwt)) {
-                    var userOpt = userService.findByEmail(userEmail);
-
-                    if (userOpt.isPresent()) {
-                        User user = userOpt.get();
-                        UsernamePasswordAuthenticationToken auth =
-                                new UsernamePasswordAuthenticationToken(user, null, new ArrayList<>());
-                        accessor.setUser(auth);
-                    }
-                    else {
-                        throw new RuntimeException("Failed to find user by email");
-                    }
-                } else {
-                    throw new RuntimeException("Invalid or expired token");
+            User user = null;
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String jwt = authHeader.substring(7);
+                if (jwtTokenProvider.validateToken(jwt)) {
+                    String userEmail = jwtTokenProvider.extractEmail(jwt);
+                    user = userService.findByEmail(userEmail)
+                            .orElseThrow(() -> new RuntimeException("Failed to find user by email"));
                 }
-            } else if (shareToken != null && !shareToken.isBlank() && !StompCommand.SEND.equals(accessor.getCommand())) {
-                Long projectId = shareService.resolveProjectId(shareToken)
-                        .orElseThrow(() -> new RuntimeException("Invalid share token"));
-                ShareTokenAuthentication auth = new ShareTokenAuthentication(projectId, shareToken);
-                accessor.setUser(auth);
+            }
+
+            Long shareProjectId = shareService.resolveProjectId(shareToken).orElse(null);
+
+            if (user == null && shareProjectId == null) {
+                throw new RuntimeException("Missing Authorization or X-Share-Token");
+            }
+
+            if (user != null) {
+                accessor.setUser(new UserAuthentication(user, shareProjectId));
             } else {
-                // Если токен не передан, можете либо пропустить (для анонимного доступа), либо кинуть исключение
-                throw new RuntimeException("Missing Authorization header");
+                accessor.setUser(new ShareTokenAuthentication(shareProjectId, shareToken));
+            }
+
+            return message;
+        }
+
+        // SEND — только для залогиненных с явным доступом
+        if (StompCommand.SEND.equals(accessor.getCommand())) {
+            Principal p = accessor.getUser();
+            if (p instanceof ShareTokenAuthentication) {
+                throw new AccessDeniedException("Read-only share session cannot send messages");
             }
         }
+
         return message;
     }
 }
