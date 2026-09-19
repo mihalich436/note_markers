@@ -67,7 +67,7 @@ public class ProjectController {
                     : ResponseEntity.status(404).body("Project not found");
         }
 
-        return ResponseEntity.status(401).body("Unauthorized");
+        return ResponseEntity.status(404).body("Project not found");
     }
 
     @PostMapping
