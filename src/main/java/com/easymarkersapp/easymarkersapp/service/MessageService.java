@@ -7,6 +7,8 @@ import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.MarkerRepository;
 import com.easymarkersapp.easymarkersapp.repository.MessageRepository;
 import jakarta.transaction.Transactional;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,8 @@ public class MessageService {
     private MapService mapService;
 
     public Message save(Message message) {
+        String cleanText = Jsoup.clean(message.getText(), Safelist.relaxed());
+        message.setText(cleanText);
         return messageRepository.save(message);
     }
 
@@ -37,7 +41,7 @@ public class MessageService {
             if (access != null && access.getRole().hasAccess(AccessRole.EDITOR)
                     || message.getUserId().equals(user.getId())) {
                 request.updateMessage(message);
-                messageRepository.save(message);
+                this.save(message);
                 return new MessageUpdateResult(marker.getMapId(), message);
             }
         }
