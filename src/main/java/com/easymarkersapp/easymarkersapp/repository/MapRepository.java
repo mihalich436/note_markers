@@ -11,4 +11,6 @@ public interface MapRepository extends JpaRepository<Map, Long> {
     List<Map> findByProjectId(Long projectId);
     @EntityGraph(attributePaths = {"project"})
     Optional<Map> findByIdAndProjectId(Long mapId, Long projectId);
+    @EntityGraph(attributePaths = "markers")
+    Optional<Map> findWithMarkersById(Long id);
 }

@@ -17,7 +17,6 @@ public class Map {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(name = "project_id")
     private Long projectId;
 
     @Column(nullable = false)
@@ -46,7 +45,6 @@ public class Map {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "projectId", nullable = false, insertable = false, updatable = false)
-//    @Access(AccessType.PROPERTY)
     @JsonIgnore
     private Project project;
 

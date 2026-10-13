@@ -26,15 +26,9 @@ public class MapService {
     @Value("${file.upload-dir}")
     private String uploadDir;
 
-    public List<Map> findByProjectId(Long projectId) {
-        return mapRepository.findByProjectId(projectId);
-    }
-    public Optional<Map> findById(Long id) {
-        return mapRepository.findById(id);
-    }
     @Transactional
     public MapWithRoleDTO findByIdAndCheckAccess(Long id, User user) {
-        Optional<Map> mapOptional = mapRepository.findById(id);
+        Optional<Map> mapOptional = mapRepository.findWithMarkersById(id);
         if (mapOptional.isPresent()) {
             Map map = mapOptional.get();
             Project project = map.getProject();
@@ -44,10 +38,7 @@ public class MapService {
                     .findFirst();
             if (projectAccessOptional.isPresent()) {
                 ProjectAccess projectAccess = projectAccessOptional.get();
-                if (projectAccess.getRole() == AccessRole.ADMIN) {
-                    map.getMarkers();
-                }
-                else {
+                if (projectAccess.getRole() != AccessRole.ADMIN) {
                     if (!map.getVisibility()) return null;
                     map.setMarkers(map.getMarkers().stream().filter(Marker::getVisibility).toList());
                 }
@@ -166,10 +157,6 @@ public class MapService {
             Map map = mapOptional.get();
             Project project = new Project(map.getProjectId());
             return accessRepository.existsByProjectAndUser(project, user);
-//            if (project.getOwnerId().equals(user.getId())) {
-//                System.out.println("Exists by owner");
-//                return true;
-//            }
         }
         return false;
     }
@@ -183,9 +170,7 @@ public class MapService {
         }
         return null;
     }
-    public Optional<Map> findByIdAndProjectId(Long mapId, Long projectId) {
-        return mapRepository.findByIdAndProjectId(mapId, projectId);
-    }
+
     public Map save(Map map) {
         return mapRepository.save(map);
     }
