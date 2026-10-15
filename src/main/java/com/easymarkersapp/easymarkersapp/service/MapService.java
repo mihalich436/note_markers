@@ -5,16 +5,20 @@ import com.easymarkersapp.easymarkersapp.exception.NotImageUploadedException;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.MapRepository;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
+import com.easymarkersapp.easymarkersapp.util.ImageTypeDetector;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -98,57 +102,81 @@ public class MapService {
         return null;
     }
     public void deleteImage(Map map) {
-        String filenamePrev = map.getId() + "." + map.getFileVersion();
-        Path uploadPath = Paths.get(uploadDir + "/" + (map.getId() % 10));
-        try {
-            Path filePathPrev = uploadPath.resolve(filenamePrev);
-            Files.delete(filePathPrev);
+        if (map == null) return;
+        String fileName = map.getFileName();
+        if (fileName == null || fileName.isBlank()) return;
+
+        Path uploadPath = Paths.get(uploadDir, String.valueOf(map.getId() % 10));
+        Path filePath = uploadPath.resolve(fileName).normalize();
+        if (filePath.startsWith(uploadPath)) {
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException ignored) {}
         }
-        catch (IOException ignored) {}
+
+        map.setFileName(null);
     }
+    private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+
     @Transactional
-    public String saveImage(Long id, User user, MultipartFile file) throws NotImageUploadedException, IOException {
+    public String saveImage(Long id, User user, MultipartFile file)
+            throws NotImageUploadedException, IOException {
+
         Map map = findByIdAndCheckRole(id, user, AccessRole.ADMIN);
-        if (map != null) {
-            // Проверка типа файла
-            String contentType = file.getContentType();
-            if (!contentType.startsWith("image/")) {
-                throw new NotImageUploadedException();
-            }
-
-            int prevVersion = map.getFileVersion() == null ? 0 : map.getFileVersion();
-            int newVersion = prevVersion + 1;
-            if (newVersion > 255) newVersion = 1;
-
-            String filename = id.toString() + "." + newVersion;
-
-            // Сохранение файла
-            Path uploadPath = Paths.get(uploadDir + "/" + (id % 10));
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            Path filePath = uploadPath.resolve(filename);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Сохранение карты
-            map.setFile(true);
-            map.setFileVersion(newVersion);
-            save(map);
-
-            // Удаление файла прошлой версии
-            if (prevVersion > 0) {
-                String filenamePrev = id + "." + prevVersion;
-                try {
-                    Path filePathPrev = uploadPath.resolve(filenamePrev);
-                    Files.delete(filePathPrev);
-                }
-                catch (NoSuchFileException ignored) {}
-            }
-
-            return "/uploads/" + (id%10) + "/" + filename;
+        if (map == null) {
+            return null;
         }
-        return null;
+
+        if (file.isEmpty()) {
+            throw new NotImageUploadedException("Файл пустой");
+        }
+        if (file.getSize() > MAX_IMAGE_SIZE) {
+            throw new NotImageUploadedException("Файл слишком большой (макс. 10 МБ)");
+        }
+
+        String extension;
+        try (InputStream in = new BufferedInputStream(file.getInputStream())) {
+            extension = ImageTypeDetector.detectExtension(in)
+                    .orElseThrow(() -> new NotImageUploadedException("Неподдерживаемый формат изображения"));
+        }
+
+        String newFileName = UUID.randomUUID() + "." + extension;
+
+        Path uploadPath = Paths.get(uploadDir, String.valueOf(id % 10));
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+        Path filePath = uploadPath.resolve(newFileName).normalize();
+        if (!filePath.startsWith(uploadPath)) {
+            throw new IOException("Некорректный путь файла");
+        }
+
+        // 1. Записать новый файл
+        try (InputStream in = file.getInputStream()) {
+            Files.copy(in, filePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            // подчистить возможный частичный файл
+            try { Files.deleteIfExists(filePath); } catch (IOException ignored) {}
+            throw e;
+        }
+
+        // 2. Обновить БД
+        String oldFileName = map.getFileName();
+        map.setFile(true);
+        map.setFileName(newFileName);
+        save(map);
+
+        // 3. Удалить старый файл (если был) — уже после успешного сохранения
+        if (oldFileName != null && !oldFileName.isBlank() && !oldFileName.equals(newFileName)) {
+            Path oldPath = uploadPath.resolve(oldFileName).normalize();
+            if (oldPath.startsWith(uploadPath)) {
+                try {
+                    Files.deleteIfExists(oldPath);
+                } catch (IOException ignored) {}
+            }
+        }
+
+        return "/uploads/" + (id % 10) + "/" + newFileName;
     }
     @Transactional
     public boolean existsByIdAndUser(Long id, User user) {

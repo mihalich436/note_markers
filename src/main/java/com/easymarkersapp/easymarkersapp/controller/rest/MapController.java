@@ -45,8 +45,8 @@ public class MapController {
 
         if (mapDto != null) {
             Map map = mapDto.getMap();
-            if (map.getFile() && map.getFileVersion() != null && map.getFileVersion() > 0) {
-                String fileUrl = "/uploads/" + (id%10) + "/" + id + "." + map.getFileVersion();
+            if (map.getFile() && map.getFileName() != null) {
+                String fileUrl = "/uploads/" + (id%10) + "/" + map.getFileName();
                 map.setImageUrl(fileUrl);
             }
             return ResponseEntity.ok(mapDto);
@@ -83,7 +83,7 @@ public class MapController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to upload image");
         } catch (NotImageUploadedException e) {
-            return ResponseEntity.badRequest().body("Only image files are allowed");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }

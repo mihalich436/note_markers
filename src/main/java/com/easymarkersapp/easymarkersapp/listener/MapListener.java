@@ -12,7 +12,7 @@ public class MapListener {
         MapService mapService = SpringContextHolder.getBean(MapService.class);
 
         // Удаляем файл, если он есть
-        if (map.getFile()) {
+        if (Boolean.TRUE.equals(map.getFile())) {
             mapService.deleteImage(map);
         }
     }

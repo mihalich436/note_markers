@@ -34,8 +34,8 @@ public class Map {
     @Column(name = "is_file")
     private Boolean isFile;
 
-    @Column(name = "file_version", columnDefinition = "TINYINT UNSIGNED")
-    private Integer fileVersion;
+    @Column(name = "file_name")
+    private String fileName;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -119,12 +119,12 @@ public class Map {
         isFile = file;
     }
 
-    public Integer getFileVersion() {
-        return fileVersion;
+    public String getFileName() {
+        return fileName;
     }
 
-    public void setFileVersion(Integer fileVersion) {
-        this.fileVersion = fileVersion;
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -168,7 +168,6 @@ public class Map {
                 ", description='" + description + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
                 ", isFile='" + isFile + '\'' +
-                ", fileVersion='" + fileVersion + '\'' +
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 '}';
