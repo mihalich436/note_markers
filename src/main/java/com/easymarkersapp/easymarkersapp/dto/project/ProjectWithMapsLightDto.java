@@ -1,6 +1,7 @@
 package com.easymarkersapp.easymarkersapp.dto.project;
 
 import com.easymarkersapp.easymarkersapp.dto.map.MapLightDto;
+import com.easymarkersapp.easymarkersapp.dto.note.NoteLightDto;
 import com.easymarkersapp.easymarkersapp.model.Project;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ public class ProjectWithMapsLightDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<MapLightDto> maps;
+    private List<NoteLightDto> notes;
 
     public ProjectWithMapsLightDto(Project project) {
         this.id = project.getId();
@@ -21,6 +23,7 @@ public class ProjectWithMapsLightDto {
         this.createdAt = project.getCreatedAt();
         this.updatedAt = project.getUpdatedAt();
         this.maps = project.getMaps().stream().map(MapLightDto::convertToLightDto).toList();
+        this.notes = project.getNotes().stream().map(NoteLightDto::convertToLightDto).toList();
     }
 
     public Long getId() {
@@ -69,5 +72,13 @@ public class ProjectWithMapsLightDto {
 
     public void setMaps(List<MapLightDto> maps) {
         this.maps = maps;
+    }
+
+    public List<NoteLightDto> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<NoteLightDto> notes) {
+        this.notes = notes;
     }
 }

@@ -2,19 +2,19 @@ package com.easymarkersapp.easymarkersapp.dto.project;
 
 import com.easymarkersapp.easymarkersapp.model.Project;
 
-public class ProjectWithRoleDTO {
+public class ProjectWithRoleDto {
     ProjectWithMapsLightDto project;
     String role;
 
-    public ProjectWithRoleDTO() {
+    public ProjectWithRoleDto() {
     }
 
-    public ProjectWithRoleDTO(Project project, String role) {
+    public ProjectWithRoleDto(Project project, String role) {
         this.project = new ProjectWithMapsLightDto(project);
         this.role = role;
     }
 
-    public ProjectWithRoleDTO(ProjectWithMapsLightDto project, String role) {
+    public ProjectWithRoleDto(ProjectWithMapsLightDto project, String role) {
         this.project = project;
         this.role = role;
     }

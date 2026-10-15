@@ -1,6 +1,6 @@
 package com.easymarkersapp.easymarkersapp.service;
 
-import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDto;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
 import jakarta.transaction.Transactional;
@@ -30,18 +30,20 @@ public class ProjectAccessService {
     }
 
     @Transactional
-    public ProjectWithRoleDTO findByProjectIdAndUserWithMaps(Long projectId, User user) {
+    public ProjectWithRoleDto findByProjectIdAndUserWithMaps(Long projectId, User user) {
         Optional<ProjectAccess> accessOptional = accessRepository.findByProjectIdAndUser(projectId, user);
         if (accessOptional.isPresent()) {
             ProjectAccess access = accessOptional.get();
             Project project = access.getProject();
             if (access.getRole() == AccessRole.ADMIN) {
                 project.getMaps();
+                project.getNotes();
             }
             else {
                 project.setMaps(project.getMaps().stream().filter(Map::getVisibility).toList());
+                project.setNotes(project.getNotes().stream().filter(Note::getVisibility).toList());
             }
-            return new ProjectWithRoleDTO(project, access.getRole().name());
+            return new ProjectWithRoleDto(project, access.getRole().name());
         }
         return null;
     }

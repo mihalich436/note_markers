@@ -1,10 +1,9 @@
 package com.easymarkersapp.easymarkersapp.dto.message;
 
-import com.easymarkersapp.easymarkersapp.model.Message;
+import com.easymarkersapp.easymarkersapp.model.MarkerMessage;
 
 public class MessageVisibilityUpdateRequest implements MessageUpdateRequest {
     private Long messageId;
-    private Long markerId;
     private Boolean visibility;
 
     public Long getMessageId() {
@@ -13,14 +12,6 @@ public class MessageVisibilityUpdateRequest implements MessageUpdateRequest {
 
     public void setMessageId(Long messageId) {
         this.messageId = messageId;
-    }
-
-    public Long getMarkerId() {
-        return markerId;
-    }
-
-    public void setMarkerId(Long markerId) {
-        this.markerId = markerId;
     }
 
     public Boolean getVisibility() {
@@ -32,7 +23,7 @@ public class MessageVisibilityUpdateRequest implements MessageUpdateRequest {
     }
 
     @Override
-    public void updateMessage(Message message) {
+    public void updateMessage(MarkerMessage message) {
         message.setVisibility(this.visibility);
     }
 }

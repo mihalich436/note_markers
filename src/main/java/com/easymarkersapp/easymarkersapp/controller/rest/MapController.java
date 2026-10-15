@@ -1,7 +1,6 @@
 package com.easymarkersapp.easymarkersapp.controller.rest;
 
 import com.easymarkersapp.easymarkersapp.config.AccessContext;
-import com.easymarkersapp.easymarkersapp.dto.AuthResponse;
 import com.easymarkersapp.easymarkersapp.dto.map.MapWithRoleDTO;
 import com.easymarkersapp.easymarkersapp.dto.marker.MarkerSaveRequest;
 import com.easymarkersapp.easymarkersapp.exception.NotImageUploadedException;

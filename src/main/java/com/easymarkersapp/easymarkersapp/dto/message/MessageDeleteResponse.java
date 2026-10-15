@@ -2,11 +2,11 @@ package com.easymarkersapp.easymarkersapp.dto.message;
 
 public class MessageDeleteResponse {
     private Long messageId;
-    private Long markerId;
+    private Long parentId;
 
-    public MessageDeleteResponse(Long messageId, Long markerId) {
+    public MessageDeleteResponse(Long messageId, Long parentId) {
         this.messageId = messageId;
-        this.markerId = markerId;
+        this.parentId = parentId;
     }
 
     public Long getMessageId() {
@@ -17,11 +17,11 @@ public class MessageDeleteResponse {
         this.messageId = messageId;
     }
 
-    public Long getMarkerId() {
-        return markerId;
+    public Long getParentId() {
+        return parentId;
     }
 
-    public void setMarkerId(Long markerId) {
-        this.markerId = markerId;
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 }

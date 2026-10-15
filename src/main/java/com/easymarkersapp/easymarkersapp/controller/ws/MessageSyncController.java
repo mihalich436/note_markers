@@ -4,7 +4,7 @@ import com.easymarkersapp.easymarkersapp.dto.message.*;
 import com.easymarkersapp.easymarkersapp.dto.ws.SyncResponse;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.service.MarkerService;
-import com.easymarkersapp.easymarkersapp.service.MessageService;
+import com.easymarkersapp.easymarkersapp.service.MarkerMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -16,56 +16,68 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class MessageSyncController {
     @Autowired
-    private MessageService messageService;
+    private MarkerMessageService markerMessageService;
     @Autowired
     private MarkerService markerService;
     @Autowired
     private SimpMessagingTemplate template;
 
-    @MessageMapping("messages")
-    public void addMessage(MessageSaveRequest request,
+    @MessageMapping("map/{mapId}/markers/{markerId}/messages")
+    public void addMessage(@DestinationVariable Long mapId,
+                           @DestinationVariable Long markerId,
+                           MessageSaveRequest request,
                            SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        Marker marker = markerService.findByIdAndCheckAccess(request.getMarkerId(), currentUser, AccessRole.CHAT);
+        Marker marker = markerService.findByIdAndCheckAccess(markerId, mapId, currentUser, AccessRole.CHAT);
         if (marker != null) {
-            Message messageToAdd = new Message(request, currentUser.getId());
+            MarkerMessage messageToAdd = new MarkerMessage(request, markerId, currentUser.getId());
             //> second bd transaction
-            Message message = messageService.save(messageToAdd);
+            MarkerMessage message = markerMessageService.save(messageToAdd);
             this.template.convertAndSend("/topic/map/" + marker.getMapId(),
                     new SyncResponse<>("message", "add", message));
         }
     }
 
-    @MessageMapping("messages/{id}/text")
-    public void updateMessageText(MessageTextUpdateRequest request,
-                              SimpMessageHeaderAccessor headerAccessor) {
-        User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        MessageUpdateResult result = messageService.updateByIdAndCheckAccess(request.getMessageId(), request, currentUser);
-        if (result != null) {
-            this.template.convertAndSend("/topic/map/" + result.mapId(),
-                    new SyncResponse<>("message", "upd", result.message()));
-        }
-    }
-
-    @MessageMapping("messages/{id}/visibility")
-    public void updateMessageVisibility(MessageVisibilityUpdateRequest request,
+    @MessageMapping("map/{mapId}/markers/{markerId}/messages/{messageId}/text")
+    public void updateMessageText(@DestinationVariable Long mapId,
+                                  @DestinationVariable Long markerId,
+                                  @DestinationVariable Long messageId,
+                                  MessageTextUpdateRequest request,
                                   SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        MessageUpdateResult result = messageService.updateByIdAndCheckAccess(request.getMessageId(), request, currentUser);
+        MarkerMessageUpdateResult result = markerMessageService.updateTextAndCheckAccess(
+                messageId, markerId, mapId, request, currentUser);
         if (result != null) {
             this.template.convertAndSend("/topic/map/" + result.mapId(),
                     new SyncResponse<>("message", "upd", result.message()));
         }
     }
 
-    @MessageMapping("messages/{id}/delete")
-    public void deleteMessage(@DestinationVariable Long id,
-                             SimpMessageHeaderAccessor headerAccessor) {
+    @MessageMapping("map/{mapId}/markers/{markerId}/messages/{messageId}/visibility")
+    public void updateMessageVisibility(@DestinationVariable Long mapId,
+                                        @DestinationVariable Long markerId,
+                                        @DestinationVariable Long messageId,
+                                        MessageVisibilityUpdateRequest request,
+                                        SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        MessageDeleteResult result = messageService.deleteByIdAndCheckAccess(id, currentUser);
+        MarkerMessageUpdateResult result = markerMessageService.updateVisibilityAndCheckAccess(
+                messageId, markerId, mapId, request, currentUser);
         if (result != null) {
             this.template.convertAndSend("/topic/map/" + result.mapId(),
-                    new SyncResponse<>("message", "del", new MessageDeleteResponse(id, result.markerId())));
+                    new SyncResponse<>("message", "upd", result.message()));
+        }
+    }
+
+    @MessageMapping("map/{mapId}/markers/{markerId}/messages/{messageId}/delete")
+    public void deleteMessage(@DestinationVariable Long mapId,
+                              @DestinationVariable Long markerId,
+                              @DestinationVariable Long messageId,
+                              SimpMessageHeaderAccessor headerAccessor) {
+        User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
+        if (markerMessageService.deleteByIdAndCheckAccess(messageId, markerId, mapId, currentUser)) {
+            this.template.convertAndSend("/topic/map/" + mapId,
+                    new SyncResponse<>("message", "del",
+                            new MessageDeleteResponse(messageId, markerId)));
         }
     }
 }

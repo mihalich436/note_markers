@@ -28,14 +28,14 @@ public class MarkerSyncController {
     @Autowired
     private SimpMessagingTemplate template;
 
-    @MessageMapping("map/{id}/markers")
-    public void addMarker(@DestinationVariable Long id, MarkerSaveRequest request,
+    @MessageMapping("map/{mapId}/markers")
+    public void addMarker(@DestinationVariable Long mapId, MarkerSaveRequest request,
                           SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        ProjectAccess access = mapService.getRoleByIdAndUser(id, currentUser);
+        ProjectAccess access = mapService.getRoleByIdAndUser(mapId, currentUser);
         if (access.getRole().hasAccess(AccessRole.EDITOR)) {
             Marker markerToAdd = new Marker(request);
-            markerToAdd.setMapId(id);
+            markerToAdd.setMapId(mapId);
             //> second transaction to db
             Marker marker = markerService.save(markerToAdd);
             this.template.convertAndSend("/topic/map/" + marker.getMapId(),
@@ -43,48 +43,56 @@ public class MarkerSyncController {
         }
     }
 
-    @MessageMapping("markers/{id}")
-    public void editMarker(@DestinationVariable Long id, MarkerSaveRequest request,
+    @MessageMapping("map/{mapId}/markers/{markerId}")
+    public void editMarker(@DestinationVariable Long mapId,
+                           @DestinationVariable Long markerId,
+                           MarkerSaveRequest request,
                            SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        Marker marker = markerService.updateByIdAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
+        // id в теле запроса больше не используется — маркер идентифицируется парой (mapId, markerId) из URL
+        Marker marker = markerService.updateByIdAndCheckAccess(markerId, mapId, request, currentUser, AccessRole.EDITOR);
         if (marker != null) {
             this.template.convertAndSend("/topic/map/" + marker.getMapId(),
                     new SyncResponse<>("marker", "upd", marker));
         }
     }
 
-    @MessageMapping("markers/{id}/move")
-    public void moveMarker(@DestinationVariable Long id, MarkerMoveRequest request,
+    @MessageMapping("map/{mapId}/markers/{markerId}/move")
+    public void moveMarker(@DestinationVariable Long mapId,
+                           @DestinationVariable Long markerId,
+                           MarkerMoveRequest request,
                            SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        Marker marker = markerService.updateByIdAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
+        Marker marker = markerService.updateByIdAndCheckAccess(markerId, mapId, request, currentUser, AccessRole.EDITOR);
         if (marker != null) {
             this.template.convertAndSend("/topic/map/" + marker.getMapId(),
                     new SyncResponse<>("marker", "move", new MarkerMoveResponse(marker)));
         }
     }
 
-    @MessageMapping("markers/{id}/copy")
-    public void copyMarker(@DestinationVariable Long id, MarkerMoveRequest request,
+    @MessageMapping("map/{mapId}/markers/{markerId}/copy")
+    public void copyMarker(@DestinationVariable Long mapId,
+                           @DestinationVariable Long markerId,
+                           MarkerMoveRequest request,
                            SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        Marker marker = markerService.copyAndCheckAccess(request, id, currentUser, AccessRole.EDITOR);
+        Marker marker = markerService.copyAndCheckAccess(request, markerId, mapId, currentUser, AccessRole.EDITOR);
         if (marker != null) {
             this.template.convertAndSend("/topic/map/" + marker.getMapId(),
                     new SyncResponse<>("marker", "add", marker));
         }
     }
 
-    @MessageMapping("markers/{id}/delete")
-    public void deleteMarker(@DestinationVariable Long id,
-                           SimpMessageHeaderAccessor headerAccessor) {
+    @MessageMapping("map/{mapId}/markers/{markerId}/delete")
+    public void deleteMarker(@DestinationVariable Long mapId,
+                             @DestinationVariable Long markerId,
+                             SimpMessageHeaderAccessor headerAccessor) {
         User currentUser = (User) ((UsernamePasswordAuthenticationToken) headerAccessor.getUser()).getPrincipal();
-        Marker marker = markerService.findByIdAndCheckAccess(id, currentUser, AccessRole.EDITOR);
+        Marker marker = markerService.findByIdAndCheckAccess(markerId, mapId, currentUser, AccessRole.EDITOR);
         if (marker != null) {
-            markerService.deleteById(id);
+            markerService.deleteById(markerId);
             this.template.convertAndSend("/topic/map/" + marker.getMapId(),
-                    new SyncResponse<>("marker", "del", id));
+                    new SyncResponse<>("marker", "del", markerId));
         }
     }
 }

@@ -40,6 +40,10 @@ public class Project {
     @JsonManagedReference
     private List<Map> maps = new ArrayList<>();
 
+    @OneToMany(mappedBy = "projectId", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<Note> notes = new ArrayList<>();
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private Set<ProjectAccess> accesses = new HashSet<>();
@@ -102,6 +106,14 @@ public class Project {
         this.maps = maps;
     }
 
+    public List<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(List<Note> notes) {
+        this.notes = notes;
+    }
+
     public Set<ProjectAccess> getAccesses() { return accesses; }
     public void setAccesses(Set<ProjectAccess> accesses) { this.accesses = accesses; }
 
@@ -115,6 +127,7 @@ public class Project {
                 ", updatedAt=" + updatedAt +
                 ", ownerId=" + ownerId +
                 ", maps=" + maps +
+                ", notes=" + notes +
                 '}';
     }
 }

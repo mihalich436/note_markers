@@ -37,7 +37,6 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/ws/**").permitAll() //> temp
                         .requestMatchers(HttpMethod.GET,
                                 "/api/projects/*",
-                                "/api/projects/*/maps",
                                 "/api/maps/*").permitAll()
                         .anyRequest().authenticated()
                 )

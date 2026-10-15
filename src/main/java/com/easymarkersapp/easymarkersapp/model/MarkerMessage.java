@@ -2,20 +2,27 @@ package com.easymarkersapp.easymarkersapp.model;
 
 import com.easymarkersapp.easymarkersapp.dto.message.MessageSaveRequest;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "marker_messages")
-public class Message {
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+public class MarkerMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-//    @Column(name = "marker_id")
-//    @JsonBackReference
-    private Long markerId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "marker_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
+    private Marker marker;
 
     @Column(name = "user_id")
     private Long userId;
@@ -30,19 +37,20 @@ public class Message {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime createdAt;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "markerId", nullable = false, insertable = false, updatable = false)
-//    @JsonIgnore
-//    private Marker marker;
-
-
-    public Message() {
+    public MarkerMessage() {
     }
 
-    public Message(MessageSaveRequest request, Long userId) {
+    public MarkerMessage(MessageSaveRequest request, Long markerId, Long userId) {
         this.text = request.getText();
         this.visibility = request.getVisibility();
-        this.markerId = request.getMarkerId();
+        if (markerId == null) {
+            this.marker = null;
+        }
+        else {
+            Marker markerProxy = new Marker();
+            markerProxy.setId(markerId);
+            this.marker = markerProxy;
+        }
         this.userId = userId;
     }
 
@@ -60,11 +68,18 @@ public class Message {
     }
 
     public Long getMarkerId() {
-        return markerId;
+        return marker.getId();
     }
 
     public void setMarkerId(Long markerId) {
-        this.markerId = markerId;
+        if (markerId == null) {
+            this.marker = null;
+        }
+        else {
+            Marker markerProxy = new Marker();
+            markerProxy.setId(markerId);
+            this.marker = markerProxy;
+        }
     }
 
     public Long getUserId() {
@@ -99,8 +114,8 @@ public class Message {
         this.createdAt = createdAt;
     }
 
-    public Message copyWithoutId(Long markerId) {
-        Message copy = new Message();
+    public MarkerMessage copyWithoutId(Long markerId) {
+        MarkerMessage copy = new MarkerMessage();
         copy.setText(this.text);
         copy.setVisibility(this.visibility);
         copy.setUserId(this.userId);

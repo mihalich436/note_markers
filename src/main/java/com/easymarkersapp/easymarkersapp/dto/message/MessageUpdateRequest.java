@@ -1,7 +1,7 @@
 package com.easymarkersapp.easymarkersapp.dto.message;
 
-import com.easymarkersapp.easymarkersapp.model.Message;
+import com.easymarkersapp.easymarkersapp.model.MarkerMessage;
 
 public interface MessageUpdateRequest {
-    void updateMessage(Message message);
+    void updateMessage(MarkerMessage message);
 }

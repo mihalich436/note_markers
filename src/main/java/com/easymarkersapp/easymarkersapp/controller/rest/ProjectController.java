@@ -4,9 +4,11 @@ import com.easymarkersapp.easymarkersapp.config.AccessContext;
 import com.easymarkersapp.easymarkersapp.dto.*;
 import com.easymarkersapp.easymarkersapp.dto.map.MapCreateRequest;
 import com.easymarkersapp.easymarkersapp.dto.map.MapToggleVisibilityRequest;
+import com.easymarkersapp.easymarkersapp.dto.note.NoteCreateRequest;
+import com.easymarkersapp.easymarkersapp.dto.note.NoteToggleVisibilityRequest;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCard;
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
-import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDto;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,8 @@ public class ProjectController {
     @Autowired
     private MapService mapService;
     @Autowired
+    private NoteService noteService;
+    @Autowired
     private ProjectShareService shareService;
 
     @GetMapping
@@ -51,7 +55,7 @@ public class ProjectController {
         // 1) Пользователь
         if (AccessContext.isUser(auth)) {
             User currentUser = (User) auth.getPrincipal();
-            ProjectWithRoleDTO project = accessService.findByProjectIdAndUserWithMaps(id, currentUser);
+            ProjectWithRoleDto project = accessService.findByProjectIdAndUserWithMaps(id, currentUser);
             if (project != null) return ResponseEntity.ok(project);
         }
 
@@ -61,7 +65,7 @@ public class ProjectController {
             if (!Objects.equals(shareProjectId, id)) {
                 return ResponseEntity.status(403).body("Share token doesn't match project");
             }
-            ProjectWithRoleDTO project = projectService.findByProjectIdPublic(id); // readonly DTO
+            ProjectWithRoleDto project = projectService.findByProjectIdPublic(id); // readonly DTO
             return project != null
                     ? ResponseEntity.ok(project)
                     : ResponseEntity.status(404).body("Project not found");
@@ -107,11 +111,55 @@ public class ProjectController {
     @GetMapping("/{projectId}/maps")
     public ResponseEntity<?> getMaps(@PathVariable Long projectId) {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Project project = projectService.findByProjectIdAndUser(projectId, currentUser);
-        if (project != null) {
+        Optional<ProjectAccess> accessOptional = accessService.findByProjectIdAndUser(projectId, currentUser);
+        if (accessOptional.isPresent()) {
+            ProjectAccess access = accessOptional.get();
+            Project project = access.getProject();
+            if (access.getRole() != AccessRole.ADMIN) {
+                List<Map> maps = project.getMaps().stream().filter(Map::getVisibility).toList();
+                return ResponseEntity.ok(maps);
+            }
             return ResponseEntity.ok(project.getMaps());
         }
         return ResponseEntity.status(404).body("Invalid project id");
+    }
+
+    @GetMapping("/{projectId}/notes")
+    public ResponseEntity<?> getNotes(@PathVariable Long projectId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // 1) Пользователь
+        if (AccessContext.isUser(auth)) {
+            User currentUser = (User) auth.getPrincipal();
+            Optional<ProjectAccess> accessOptional = accessService.findByProjectIdAndUser(projectId, currentUser);
+            if (accessOptional.isPresent()) {
+                ProjectAccess access = accessOptional.get();
+                Project project = access.getProject();
+                if (access.getRole() != AccessRole.ADMIN) {
+                    List<Note> notes = project.getNotes().stream().filter(Note::getVisibility).toList();
+                    return ResponseEntity.ok(notes);
+                }
+                return ResponseEntity.ok(project.getNotes());
+            }
+        }
+
+        // 2) Share-токен
+        Long shareProjectId = AccessContext.shareProjectId(auth);
+        if (shareProjectId != null) {
+            if (!Objects.equals(shareProjectId, projectId)) {
+                return ResponseEntity.status(403).body("Share token doesn't match project");
+            }
+            Optional<Project> projectOptional = projectService.findById(projectId);
+            if (projectOptional.isEmpty()) {
+                return ResponseEntity.status(404).body("Project not found");
+            }
+            Project project = projectOptional.get();
+            List<Note> notes = project.getNotes().stream().filter(Note::getVisibility).toList();
+            return ResponseEntity.ok(notes);
+
+        }
+
+        return ResponseEntity.status(404).body("Project not found");
     }
 
     @PostMapping("/{projectId}/maps")
@@ -132,6 +180,22 @@ public class ProjectController {
         return ResponseEntity.status(404).body("Invalid project id");
     }
 
+    @PostMapping("/{projectId}/notes")
+    public ResponseEntity<?> createNote(@RequestBody NoteCreateRequest createRequest, @PathVariable Long projectId) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Project project = projectService.findByProjectIdAndUserWithRole(projectId, currentUser, AccessRole.ADMIN);
+        if (project != null) {
+            Note note = new Note();
+            note.setTitle(createRequest.getTitle());
+            note.setDescription(createRequest.getDescription());
+            note.setVisibility(createRequest.getVisibility());
+            note.setProjectId(projectId);
+            Note newNote = noteService.save(note);
+            return ResponseEntity.ok(newNote);
+        }
+        return ResponseEntity.status(404).body("Invalid project id");
+    }
+
     @PutMapping("/{projectId}/maps/{mapId}")
     public ResponseEntity<?> editMap(
             @RequestBody MapCreateRequest editRequest,
@@ -141,15 +205,6 @@ public class ProjectController {
         User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         Map map = mapService.findByIdAndProjectIdAndCheckRole(mapId, projectId, currentUser, AccessRole.ADMIN);
         if (map != null) {
-//            map.setTitle(editRequest.getTitle());
-//            map.setDescription(editRequest.getDescription());
-//            map.setImageUrl(editRequest.getImageUrl());
-//            map.setVisibility(editRequest.getVisibility());
-//            Boolean isFilePrev = map.getFile();
-//            map.setFile(editRequest.getFile());
-//            if (!editRequest.getFile() && isFilePrev) {
-//                mapService.deleteImage(map);
-//            }
             if (editRequest.updateMap(map)) {
                 mapService.deleteImage(map);
             }
@@ -157,6 +212,22 @@ public class ProjectController {
             return ResponseEntity.ok(updatedMap);
         }
         return ResponseEntity.status(404).body("Invalid map or project id");
+    }
+
+    @PutMapping("/{projectId}/notes/{noteId}")
+    public ResponseEntity<?> editNote(
+            @RequestBody NoteCreateRequest editRequest,
+            @PathVariable Long projectId,
+            @PathVariable Long noteId
+    ) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Note note = noteService.findByIdAndProjectIdAndCheckRole(noteId, projectId, currentUser, AccessRole.ADMIN);
+        if (note != null) {
+            editRequest.updateNote(note);
+            Note updatedNote = noteService.save(note);
+            return ResponseEntity.ok(updatedNote);
+        }
+        return ResponseEntity.status(404).body("Invalid note or project id");
     }
 
     @PutMapping("/{projectId}/maps/{mapId}/visibility")
@@ -175,6 +246,22 @@ public class ProjectController {
         return ResponseEntity.status(404).body("Invalid map or project id");
     }
 
+    @PutMapping("/{projectId}/notes/{noteId}/visibility")
+    public ResponseEntity<?> toggleNoteVisibility(
+            @RequestBody NoteToggleVisibilityRequest editRequest,
+            @PathVariable Long projectId,
+            @PathVariable Long noteId
+    ) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Note note = noteService.findByIdAndProjectIdAndCheckRole(noteId, projectId, currentUser, AccessRole.ADMIN);
+        if (note != null) {
+            editRequest.updateNote(note);
+            Note updatedNote = noteService.save(note);
+            return ResponseEntity.ok(updatedNote);
+        }
+        return ResponseEntity.status(404).body("Invalid note or project id");
+    }
+
     @DeleteMapping("/{projectId}/maps/{mapId}")
     public ResponseEntity<?> deleteMap(
             @PathVariable Long projectId,
@@ -187,6 +274,20 @@ public class ProjectController {
             return ResponseEntity.ok(mapId);
         }
         return ResponseEntity.status(404).body("Invalid map or project id");
+    }
+
+    @DeleteMapping("/{projectId}/notes/{noteId}")
+    public ResponseEntity<?> deleteNote(
+            @PathVariable Long projectId,
+            @PathVariable Long noteId
+    ) {
+        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        Note note = noteService.findByIdAndProjectIdAndCheckRole(noteId, projectId, currentUser, AccessRole.ADMIN);
+        if (note != null) {
+            noteService.delete(note);
+            return ResponseEntity.ok(noteId);
+        }
+        return ResponseEntity.status(404).body("Invalid note or project id");
     }
 
     // ========== УПРАВЛЕНИЕ ДОСТУПОМ ==========

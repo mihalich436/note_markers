@@ -42,11 +42,9 @@ public class Marker {
     @JsonIgnore
     private Map map;
 
-    // Связь с проектом (много заметок -> один проект)
-    @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "markerId")
-//    @JsonManagedReference
-    private List<Message> messages = new ArrayList<>();
+    @OneToMany(mappedBy = "marker", fetch = FetchType.EAGER)
+//    @JoinColumn(name = "markerId")
+    private List<MarkerMessage> messages = new ArrayList<>();
 
     public Marker(MarkerSaveRequest createRequest) {
         this.number = createRequest.getNumber();
@@ -179,11 +177,11 @@ public class Marker {
         this.updatedAt = updatedAt;
     }
 
-    public List<Message> getMessages() {
+    public List<MarkerMessage> getMessages() {
         return messages;
     }
 
-    public void setMessages(List<Message> messages) {
+    public void setMessages(List<MarkerMessage> messages) {
         this.messages = messages;
     }
 

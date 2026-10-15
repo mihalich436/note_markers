@@ -18,7 +18,7 @@ public class MarkerService {
     @Autowired
     private MapService mapService;
     @Autowired
-    private MessageService messageService;
+    private MarkerMessageService markerMessageService;
 
     public Marker save(Marker marker) {
         String number = marker.getNumber();
@@ -28,59 +28,60 @@ public class MarkerService {
         return markerRepository.save(marker);
     }
 
+    /**
+     * Находит маркер по markerId, проверяет:
+     *  - что маркер существует,
+     *  - что маркер действительно принадлежит mapId из URL,
+     *  - что у пользователя есть доступ к этой карте с нужной ролью.
+     */
     @Transactional
-    public Marker findByIdAndCheckAccess(Long id, User user, AccessRole requiredRole) {
-        Optional<Marker> markerOptional = markerRepository.findById(id);
-        if (markerOptional.isPresent()) {
-            Marker marker = markerOptional.get();
-            ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
-            if (access != null && access.getRole().hasAccess(requiredRole)) {
-                return marker;
-            }
+    public Marker findByIdAndCheckAccess(Long markerId, Long mapId, User user, AccessRole requiredRole) {
+        Optional<Marker> markerOptional = markerRepository.findById(markerId);
+        if (markerOptional.isEmpty()) return null;
+        Marker marker = markerOptional.get();
+
+        // маркер должен принадлежать именно той карте, что в URL
+        if (!marker.getMapId().equals(mapId)) return null;
+
+        ProjectAccess access = mapService.getRoleByIdAndUser(mapId, user);
+        if (access != null && access.getRole().hasAccess(requiredRole)) {
+            return marker;
         }
         return null;
     }
 
     @Transactional
-    public Marker updateByIdAndCheckAccess(MarkerRequest request, Long id, User user, AccessRole requiredRole) {
-        Optional<Marker> markerOptional = markerRepository.findById(id);
-        if (markerOptional.isPresent()) {
-            Marker marker = markerOptional.get();
-            boolean visibilityPrev = marker.getVisibility();
-            ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
-            if (access != null && access.getRole().hasAccess(requiredRole)) {
-                request.updateMarker(marker);
-                Marker updatedMarker = this.save(marker);
-                if (!visibilityPrev && updatedMarker.getVisibility()) {
-                    updatedMarker.getMessages();
-                }
-                return updatedMarker;
-            }
+    public Marker updateByIdAndCheckAccess(Long markerId, Long mapId, MarkerRequest request,
+                                           User user, AccessRole requiredRole) {
+        Marker marker = findByIdAndCheckAccess(markerId, mapId, user, requiredRole);
+        if (marker == null) return null;
+
+        boolean visibilityPrev = marker.getVisibility();
+        request.updateMarker(marker);
+        Marker updatedMarker = this.save(marker);
+        if (!visibilityPrev && updatedMarker.getVisibility()) {
+            updatedMarker.getMessages();
         }
-        return null;
+        return updatedMarker;
     }
 
     @Transactional
-    public Marker copyAndCheckAccess(MarkerRequest request, Long id, User user, AccessRole requiredRole) {
-        Optional<Marker> markerOptional = markerRepository.findById(id);
-        if (markerOptional.isPresent()) {
-            Marker marker = markerOptional.get();
-            ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
-            if (access != null && access.getRole().hasAccess(requiredRole)) {
-                Marker copiedMarker = marker.copy();
-                request.updateMarker(copiedMarker);
-                this.save(copiedMarker);
-                if (marker.getMessages() != null) {
-                    List<Message> copiedMessages = marker.getMessages().stream()
-                            .map(m -> m.copyWithoutId(copiedMarker.getId()))
-                            .collect(Collectors.toList());
-                    copiedMarker.setMessages(copiedMessages);
-                    copiedMarker.getMessages().forEach(m -> messageService.save(m));
-                }
-                return copiedMarker;
-            }
+    public Marker copyAndCheckAccess(MarkerRequest request, Long markerId, Long mapId,
+                                     User user, AccessRole requiredRole) {
+        Marker marker = findByIdAndCheckAccess(markerId, mapId, user, requiredRole);
+        if (marker == null) return null;
+
+        Marker copiedMarker = marker.copy();
+        request.updateMarker(copiedMarker);
+        this.save(copiedMarker);
+        if (marker.getMessages() != null) {
+            List<MarkerMessage> copiedMessages = marker.getMessages().stream()
+                    .map(m -> m.copyWithoutId(copiedMarker.getId()))
+                    .collect(Collectors.toList());
+            copiedMarker.setMessages(copiedMessages);
+            copiedMarker.getMessages().forEach(m -> markerMessageService.save(m));
         }
-        return null;
+        return copiedMarker;
     }
 
     public void deleteById(Long id) {
@@ -88,17 +89,11 @@ public class MarkerService {
     }
 
     @Transactional
-    public boolean deleteByIdAndCheckAccess(Long id, User user) {
-        Optional<Marker> markerOptional = markerRepository.findById(id);
-        if (markerOptional.isPresent()) {
-            Marker marker = markerOptional.get();
-            ProjectAccess access = mapService.getRoleByIdAndUser(marker.getMapId(), user);
-            if (access != null && access.getRole().hasAccess(AccessRole.EDITOR)) {
-                markerRepository.delete(marker);
-                return true;
-            }
-        }
-        return false;
+    public boolean deleteByIdAndCheckAccess(Long markerId, Long mapId, User user) {
+        Marker marker = findByIdAndCheckAccess(markerId, mapId, user, AccessRole.EDITOR);
+        if (marker == null) return false;
+        markerRepository.delete(marker);
+        return true;
     }
 
     public boolean existsByIdAndCheckAccess(Long id, User user) {

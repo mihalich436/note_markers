@@ -1,10 +1,9 @@
 package com.easymarkersapp.easymarkersapp.dto.message;
 
-import com.easymarkersapp.easymarkersapp.model.Message;
+import com.easymarkersapp.easymarkersapp.model.MarkerMessage;
 
 public class MessageTextUpdateRequest implements MessageUpdateRequest {
     private Long messageId;
-    private Long markerId;
     private String text;
 
     public Long getMessageId() {
@@ -13,14 +12,6 @@ public class MessageTextUpdateRequest implements MessageUpdateRequest {
 
     public void setMessageId(Long messageId) {
         this.messageId = messageId;
-    }
-
-    public Long getMarkerId() {
-        return markerId;
-    }
-
-    public void setMarkerId(Long markerId) {
-        this.markerId = markerId;
     }
 
     public String getText() {
@@ -32,7 +23,7 @@ public class MessageTextUpdateRequest implements MessageUpdateRequest {
     }
 
     @Override
-    public void updateMessage(Message message) {
+    public void updateMessage(MarkerMessage message) {
         message.setText(this.text);
     }
 }

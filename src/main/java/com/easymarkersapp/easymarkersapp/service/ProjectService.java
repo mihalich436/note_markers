@@ -1,7 +1,7 @@
 package com.easymarkersapp.easymarkersapp.service;
 
 import com.easymarkersapp.easymarkersapp.dto.project.ProjectCreateRequest;
-import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDTO;
+import com.easymarkersapp.easymarkersapp.dto.project.ProjectWithRoleDto;
 import com.easymarkersapp.easymarkersapp.model.*;
 import com.easymarkersapp.easymarkersapp.repository.ProjectAccessRepository;
 import com.easymarkersapp.easymarkersapp.repository.ProjectRepository;
@@ -55,13 +55,14 @@ public class ProjectService {
     }
 
     @Transactional
-    public ProjectWithRoleDTO findByProjectIdPublic(Long projectId) {
+    public ProjectWithRoleDto findByProjectIdPublic(Long projectId) {
         Optional<Project> projectOptional = projectRepository.findById(projectId);
         if (projectOptional.isPresent()) {
             Project project = projectOptional.get();
             project.setMaps(project.getMaps().stream().filter(Map::getVisibility).toList());
+            project.setNotes(project.getNotes().stream().filter(Note::getVisibility).toList());
 
-            return new ProjectWithRoleDTO(project, "READONLY");
+            return new ProjectWithRoleDto(project, "READONLY");
         }
         return null;
     }
