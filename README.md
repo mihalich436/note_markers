@@ -4,6 +4,8 @@ Lazy DM Notes is a full-stack web application designed for tabletop RPG Game Mas
 
 **Live Demo:** [lazydmnotes.app](https://lazydmnotes.app)  
 
+<img width="800" height="416" alt="Image" src="https://github.com/user-attachments/assets/83794fe3-6b9b-46d2-8a53-0f518b83f2b9" />
+
 ---
 
 ## 🚀 Key Features
